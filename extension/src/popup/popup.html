@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Sales Lister</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <span class="logo">🚗</span>
+      <h1>Car Sales Lister</h1>
+    </header>
+
+    <!-- Not logged in -->
+    <div id="login-section" class="section hidden">
+      <p class="text-muted">Sign in to sync your watchlists and receive deal alerts.</p>
+      <div class="form-group">
+        <input type="email" id="email-input" placeholder="Email" class="input" />
+      </div>
+      <div class="form-group">
+        <input type="password" id="password-input" placeholder="Password" class="input" />
+      </div>
+      <button id="login-btn" class="btn btn-primary">Sign In</button>
+      <p id="login-error" class="error hidden"></p>
+    </div>
+
+    <!-- Logged in -->
+    <div id="dashboard-section" class="section hidden">
+      <div class="user-info">
+        <span id="user-email" class="text-muted"></span>
+        <button id="logout-btn" class="btn-link">Sign Out</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-value" id="watchlist-count">-</span>
+          <span class="stat-label">Watchlists</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="alert-count">-</span>
+          <span class="stat-label">Alerts</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="open-dashboard-btn" class="btn btn-primary">Open Dashboard</button>
+        <button id="scrape-now-btn" class="btn btn-secondary">Scan Now</button>
+      </div>
+
+      <div id="recent-alerts" class="recent-section hidden">
+        <h3>Recent Alerts</h3>
+        <ul id="alerts-list" class="alerts-list"></ul>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <a id="open-app-link" href="#">Open Web App</a>
+    </footer>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
