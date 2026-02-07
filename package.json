@@ -14,6 +14,7 @@
     "build": "npm run build --workspaces",
     "build:frontend": "npm run build --workspace=frontend",
     "build:backend": "npm run build --workspace=backend",
+    "build:render": "npm run build:frontend && npm run build:backend",
     "start": "npm run start --workspace=backend",
     "clean": "npm run clean --workspaces",
     "lint": "npm run lint --workspaces",

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { handleApiError } from '../services/api';
 import type { User } from '../types';
 
 interface AuthState {
