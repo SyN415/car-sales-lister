@@ -34,13 +34,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
 }));
 
-// Rate limiting
+// Rate limiting — applied only to API routes, not static assets
 const limiter = rateLimit({
   windowMs: config.RATE_LIMIT_WINDOW_MS,
   max: config.RATE_LIMIT_MAX,
   message: { success: false, error: 'Too many requests, please try again later.' },
 });
-app.use(limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -50,13 +49,13 @@ app.use(cookieParser());
 // Health check route
 app.use('/health', healthRoutes);
 
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/listings', listingRoutes);
-app.use('/api/watchlists', watchlistRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api/valuations', valuationRoutes);
-app.use('/api/admin', adminRoutes);
+// API routes (rate limiter scoped here only)
+app.use('/api/auth', limiter, authRoutes);
+app.use('/api/listings', limiter, listingRoutes);
+app.use('/api/watchlists', limiter, watchlistRoutes);
+app.use('/api/alerts', limiter, alertRoutes);
+app.use('/api/valuations', limiter, valuationRoutes);
+app.use('/api/admin', limiter, adminRoutes);
 
 // Serve static files from the frontend build directory
 const frontendPath = path.join(__dirname, '../../frontend/dist');
