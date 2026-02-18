@@ -14,9 +14,9 @@ export const config = {
   JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
   COOKIE_SECRET: process.env.COOKIE_SECRET || 'your-cookie-secret-change-in-production',
 
-  // Rate limiting
+  // Rate limiting (300 req per 15 min per IP — enough for normal browsing)
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+  RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '300', 10),
 
   // KBB / Vehicle Valuation
   KBB_API_KEY: process.env.KBB_API_KEY || '',

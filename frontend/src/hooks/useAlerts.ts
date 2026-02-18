@@ -9,11 +9,12 @@ export const useAlerts = (unreadOnly: boolean = false) => {
   });
 };
 
-export const useUnreadAlertCount = () => {
+export const useUnreadAlertCount = (enabled: boolean = true) => {
   return useQuery({
     queryKey: alertKeys.count,
     queryFn: alertsAPI.getUnreadCount,
     refetchInterval: 30000, // Poll every 30 seconds
+    enabled,
   });
 };
 

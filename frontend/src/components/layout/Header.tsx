@@ -7,7 +7,7 @@ import { useUnreadAlertCount } from '../../hooks/useAlerts';
 const Header: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthContext();
   const { mode, toggleTheme } = useThemeContext();
-  const { data: unreadCount } = useUnreadAlertCount();
+  const { data: unreadCount } = useUnreadAlertCount(isAuthenticated);
   const navigate = useNavigate();
 
   const handleLogout = () => {
