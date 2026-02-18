@@ -1,5 +1,5 @@
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* Tailwind Base */
 @import "tailwindcss";
@@ -8,7 +8,9 @@
   --font-display: 'Inter', system-ui, -apple-system, sans-serif;
   --font-ui: 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
+  /* Original primary palette (still used in app pages) */
   --color-primary: #2563EB;
   --color-primary-50: #EFF6FF;
   --color-primary-100: #DBEAFE;
@@ -21,6 +23,21 @@
   --color-primary-800: #1E40AF;
   --color-primary-900: #1E3A8A;
 
+  /* Vapi-inspired accent palette */
+  --color-mint: #7AFCB8;
+  --color-mint-dim: #5AD89A;
+  --color-violet: #C084FC;
+  --color-sky: #38BDF8;
+  --color-amber: #FBBF24;
+  --color-coral: #FB7185;
+
+  /* Dark surface palette */
+  --color-surface-black: #050505;
+  --color-surface-dark: #0A0A0A;
+  --color-surface-card: #111111;
+  --color-surface-elevated: #1A1A1A;
+  --color-surface-border: rgba(255, 255, 255, 0.08);
+
   --color-accent: #F59E0B;
   --color-accent-50: #FFFBEB;
   --color-accent-500: #F59E0B;
@@ -30,6 +47,9 @@
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
   --color-info: #3B82F6;
+
+  /* Animation timing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Base styles */
@@ -43,3 +63,83 @@ body {
 .dark {
   color-scheme: dark;
 }
+
+/* ── Landing Page Utilities ── */
+
+/* Dot-matrix background */
+.dot-matrix {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Grid-line background */
+.grid-lines {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Glassmorphism pill */
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-pill:hover {
+  border-color: var(--color-mint);
+  box-shadow: 0 0 20px rgba(122, 252, 184, 0.15);
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 16px;
+  transition: border-color 0.3s ease, transform 0.3s var(--ease-out-expo);
+}
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Glow effects */
+.glow-mint {
+  box-shadow: 0 0 60px rgba(122, 252, 184, 0.15), 0 0 120px rgba(122, 252, 184, 0.05);
+}
+.glow-violet {
+  box-shadow: 0 0 60px rgba(192, 132, 252, 0.15), 0 0 120px rgba(192, 132, 252, 0.05);
+}
+
+/* Text gradient */
+.text-gradient-mint {
+  background: linear-gradient(135deg, #7AFCB8, #38BDF8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated floating glow orbs */
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.05); }
+  66% { transform: translate(-20px, 15px) scale(0.95); }
+}
+@keyframes float-slower {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-25px, 25px) scale(1.03); }
+  66% { transform: translate(15px, -30px) scale(0.97); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+.animate-float-slow { animation: float-slow 12s ease-in-out infinite; }
+.animate-float-slower { animation: float-slower 16s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
