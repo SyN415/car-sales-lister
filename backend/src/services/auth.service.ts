@@ -67,6 +67,7 @@ class AuthService {
       const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({ email, password });
 
       if (authError || !authData.user) {
+        console.error('Login failed for', email, '— Supabase error:', authError?.message, authError?.status);
         return { success: false, error: authError?.message || 'Invalid credentials' };
       }
 
