@@ -20,6 +20,10 @@ import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
+// Trust the first proxy (required on Render / any reverse-proxy host so that
+// express-rate-limit can read X-Forwarded-For and identify clients correctly)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
