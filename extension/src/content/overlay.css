@@ -280,3 +280,202 @@
   letter-spacing: 0.3px;
 }
 
+/* ----- Quick Action Links Grid ----- */
+.csl-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+.csl-action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.csl-action-link:hover {
+  background: rgba(255,255,255,0.12);
+  color: #e2e8f0;
+  border-color: rgba(255,255,255,0.18);
+}
+.csl-action-link--success {
+  color: #34d399 !important;
+  border-color: rgba(16,185,129,0.3) !important;
+  background: rgba(16,185,129,0.1) !important;
+}
+.csl-action-icon { font-size: 12px; }
+
+/* ----- Inline links (e.g. market value link) ----- */
+.csl-link--inline {
+  color: #10b981;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(16,185,129,0.4);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.csl-link--inline:hover {
+  color: #34d399;
+  border-bottom-color: #34d399;
+}
+
+/* ----- Expandable Sections ----- */
+.csl-expandable {
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.csl-expandable:hover {
+  border-color: rgba(255,255,255,0.12);
+}
+.csl-expandable-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+  cursor: pointer;
+  background: rgba(255,255,255,0.03);
+  user-select: none;
+  transition: background 0.15s ease;
+}
+.csl-expandable-header:hover {
+  background: rgba(255,255,255,0.06);
+}
+.csl-chevron {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+.csl-expandable--open .csl-chevron {
+  transform: rotate(90deg);
+}
+.csl-expandable-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 12px;
+  transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease;
+}
+.csl-expandable--open .csl-expandable-content {
+  max-height: 400px;
+  padding: 10px 12px;
+}
+
+/* ----- Fair Offer Box ----- */
+.csl-offer-box {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  margin-bottom: 8px;
+}
+.csl-offer-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+.csl-offer-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #34d399;
+  letter-spacing: -0.5px;
+}
+.csl-offer-savings {
+  font-size: 11px;
+  color: #10b981;
+  margin-top: 4px;
+}
+
+/* ----- Cost of Ownership ----- */
+.csl-cost-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 11px;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.csl-cost-row:last-of-type {
+  border-bottom: none;
+}
+.csl-cost-total {
+  font-weight: 700;
+  color: #e2e8f0;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-bottom: none;
+}
+
+/* ----- VIN Section ----- */
+.csl-vin-display {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.csl-vin-display code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  background: rgba(255,255,255,0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #e2e8f0;
+  letter-spacing: 0.5px;
+}
+.csl-vin-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.csl-vin-links .csl-link {
+  font-size: 11px;
+  color: #60a5fa;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.csl-vin-links .csl-link:hover {
+  color: #93bbfc;
+  text-decoration: underline;
+}
+
+/* ----- Hint Text ----- */
+.csl-hint {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* ----- Panel scroll for long content ----- */
+.csl-panel-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.csl-panel-body::-webkit-scrollbar {
+  width: 4px;
+}
+.csl-panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.csl-panel-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+}

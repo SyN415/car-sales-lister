@@ -404,6 +404,7 @@
   /* ================================================================ */
 
   let scanInProgress = false;
+  let detailPageProcessedUrl = null; // prevents infinite rescan on detail pages
 
   async function scanPage() {
     if (!isMarketplacePage()) {
@@ -419,9 +420,15 @@
 
     try {
       if (isDetailPage()) {
+        // Skip if we already processed this exact URL
+        if (detailPageProcessedUrl === window.location.href) {
+          log('Detail page already processed, skipping');
+          return;
+        }
         log('Scanning detail page:', window.location.href);
         const listing = extractDetailPageListing();
         if (listing) {
+          detailPageProcessedUrl = window.location.href;
           submitListing(listing);
           if (window.CarSalesOverlay) {
             window.CarSalesOverlay.injectDetailPanel(listing);
@@ -471,6 +478,7 @@
       if (current !== lastUrl) {
         log('URL changed:', lastUrl, '→', current);
         lastUrl = current;
+        detailPageProcessedUrl = null; // allow new detail page to be processed
         // Small delay to let Facebook render new content
         setTimeout(scanPage, 1500);
       }
@@ -483,8 +491,18 @@
   /* ================================================================ */
 
   let mutationTimer = null;
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver((mutations) => {
     if (!isMarketplacePage()) return;
+    // Skip if a detail page has already been processed (prevents infinite loop
+    // where injectDetailPanel DOM changes re-trigger the observer)
+    if (isDetailPage() && detailPageProcessedUrl === window.location.href) return;
+    // Ignore mutations that only touch our own overlay elements
+    const onlyOurs = mutations.every(m =>
+      [...m.addedNodes, ...m.removedNodes].every(n =>
+        n.nodeType === 1 && (n.classList?.contains('csl-overlay') || n.closest?.('.csl-overlay'))
+      )
+    );
+    if (onlyOurs) return;
     clearTimeout(mutationTimer);
     mutationTimer = setTimeout(scanPage, 2000);
   });
@@ -496,6 +514,7 @@
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'SCAN_NOW') {
       log('Manual scan triggered from popup');
+      detailPageProcessedUrl = null; // allow rescan
       // Reset scanned flags so we rescan everything
       document.querySelectorAll('[data-csl-scanned]').forEach(el => {
         delete el.dataset.cslScanned;
