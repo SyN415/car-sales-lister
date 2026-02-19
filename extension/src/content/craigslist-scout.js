@@ -26,36 +26,47 @@
 
   // Make-model mapping for extraction from titles
   const MAKES = {
-    toyota: ['camry','corolla','rav4','tacoma','highlander','4runner','tundra','prius','supra','sienna','avalon'],
-    honda: ['civic','accord','cr-v','pilot','odyssey','hr-v','ridgeline','passport','fit','insight'],
-    ford: ['f-150','f150','mustang','explorer','escape','bronco','ranger','edge','expedition','fusion','focus','maverick'],
-    chevrolet: ['silverado','equinox','malibu','tahoe','traverse','camaro','colorado','suburban','blazer','trax'],
-    chevy: ['silverado','equinox','malibu','tahoe','traverse','camaro','colorado','suburban','blazer','trax'],
-    bmw: ['3 series','5 series','x3','x5','x1','m3','m5','330i','530i','x7'],
-    'mercedes-benz': ['c-class','e-class','glc','gle','a-class','s-class','gla','cla'],
-    mercedes: ['c-class','e-class','glc','gle','a-class','s-class','gla','cla','c300','e350'],
-    audi: ['a4','a6','q5','q7','a3','q3','a5','e-tron'],
-    nissan: ['altima','rogue','sentra','pathfinder','frontier','murano','maxima','kicks','versa'],
-    hyundai: ['elantra','tucson','santa fe','sonata','kona','palisade','venue','ioniq'],
-    kia: ['forte','sportage','telluride','sorento','seltos','soul','k5','carnival'],
-    subaru: ['outback','forester','crosstrek','impreza','wrx','ascent','legacy'],
-    volkswagen: ['jetta','tiguan','atlas','golf','passat','taos','id.4'],
-    vw: ['jetta','tiguan','atlas','golf','passat','taos','id.4'],
-    mazda: ['mazda3','mazda6','cx-5','cx-30','cx-50','cx-9','mx-5','miata'],
-    jeep: ['wrangler','grand cherokee','cherokee','compass','gladiator','renegade'],
-    ram: ['1500','2500','3500'],
-    dodge: ['charger','challenger','durango','hornet'],
-    tesla: ['model 3','model y','model s','model x','cybertruck'],
-    lexus: ['rx','es','nx','is','gx','lx','ux'],
-    acura: ['mdx','rdx','tlx','integra'],
-    volvo: ['xc90','xc60','xc40','s60','s90','v60'],
-    porsche: ['cayenne','macan','911','taycan','panamera'],
-    buick: ['encore','envision','enclave'],
-    cadillac: ['escalade','xt5','xt4','ct5','ct4'],
-    gmc: ['sierra','terrain','acadia','yukon','canyon'],
-    lincoln: ['navigator','aviator','corsair','nautilus'],
-    chrysler: ['pacifica','300'],
-    mitsubishi: ['outlander','eclipse cross','mirage'],
+    toyota: ['camry','corolla','rav4','tacoma','highlander','4runner','tundra','prius','supra','sienna','avalon','venza','gr86','yaris','sequoia','land cruiser'],
+    honda: ['civic','accord','cr-v','pilot','odyssey','hr-v','ridgeline','passport','fit','insight','element','s2000','prelude'],
+    ford: ['f-150','f150','f-250','f250','f-350','f350','mustang','explorer','escape','bronco','ranger','edge','expedition','fusion','focus','maverick','lightning','gt'],
+    chevrolet: ['silverado','equinox','malibu','tahoe','traverse','camaro','colorado','suburban','blazer','trax','corvette','impala','cruze','bolt','spark'],
+    chevy: ['silverado','equinox','malibu','tahoe','traverse','camaro','colorado','suburban','blazer','trax','corvette','impala','cruze','bolt','spark'],
+    bmw: ['3 series','5 series','7 series','x3','x5','x1','x7','m3','m4','m5','330i','530i','340i','m2','z4','i4','ix'],
+    'mercedes-benz': ['c-class','e-class','s-class','glc','gle','gla','cla','a-class','g-class','amg','glb','gls','eqe','eqs'],
+    mercedes: ['c-class','e-class','s-class','glc','gle','gla','cla','a-class','g-class','amg','glb','gls','c300','e350','c250','e400'],
+    audi: ['a4','a6','a3','a5','a7','a8','q5','q7','q3','q8','e-tron','rs3','rs5','rs6','rs7','s4','s5','tt','r8'],
+    nissan: ['altima','rogue','sentra','pathfinder','frontier','murano','maxima','kicks','versa','titan','370z','350z','leaf','armada','juke','gt-r'],
+    hyundai: ['elantra','tucson','santa fe','sonata','kona','palisade','venue','ioniq','ioniq 5','ioniq 6','veloster','genesis','accent'],
+    kia: ['forte','sportage','telluride','sorento','seltos','soul','k5','carnival','stinger','optima','rio','niro','ev6'],
+    subaru: ['outback','forester','crosstrek','impreza','wrx','sti','ascent','legacy','brz','baja'],
+    volkswagen: ['jetta','tiguan','atlas','golf','passat','taos','id.4','gti','gli','arteon','beetle','cc','touareg'],
+    vw: ['jetta','tiguan','atlas','golf','passat','taos','id.4','gti','gli','arteon','beetle','cc','touareg'],
+    mazda: ['mazda3','mazda6','cx-5','cx-30','cx-50','cx-9','cx-90','mx-5','miata','rx-7','rx-8','cx-3'],
+    jeep: ['wrangler','grand cherokee','cherokee','compass','gladiator','renegade','wagoneer','liberty','patriot'],
+    ram: ['1500','2500','3500','promaster'],
+    dodge: ['charger','challenger','durango','hornet','viper','dart','journey','grand caravan'],
+    tesla: ['model 3','model y','model s','model x','cybertruck','roadster'],
+    lexus: ['rx','es','nx','is','gx','lx','ux','ls','lc','rc','ct'],
+    acura: ['mdx','rdx','tlx','integra','tsx','tl','rsx','nsx','ilx'],
+    infiniti: ['q50','q60','qx50','qx60','qx80','g37','g35','fx35'],
+    volvo: ['xc90','xc60','xc40','s60','s90','v60','v90','c40','c30'],
+    porsche: ['cayenne','macan','911','taycan','panamera','boxster','cayman','carrera','718','gt3','gt4','turbo'],
+    buick: ['encore','envision','enclave','regal','lacrosse','verano'],
+    cadillac: ['escalade','xt5','xt4','ct5','ct4','xt6','lyriq','ats','cts','srx','deville'],
+    gmc: ['sierra','terrain','acadia','yukon','canyon','denali','envoy','savana'],
+    lincoln: ['navigator','aviator','corsair','nautilus','mkz','mkc','mkx','continental','town car'],
+    chrysler: ['pacifica','300','voyager','town and country','sebring','pt cruiser'],
+    mitsubishi: ['outlander','eclipse cross','mirage','outlander sport','lancer','galant','montero'],
+    genesis: ['g70','g80','g90','gv70','gv80','gv60'],
+    'land rover': ['range rover','discovery','defender','evoque','velar','sport','freelander'],
+    jaguar: ['f-pace','e-pace','xe','xf','xj','f-type','i-pace'],
+    'alfa romeo': ['giulia','stelvio','4c','tonale'],
+    fiat: ['500','500x','500l','spider','124'],
+    mini: ['cooper','countryman','clubman','paceman','hardtop','convertible'],
+    rivian: ['r1t','r1s'],
+    lucid: ['air','gravity'],
+    maserati: ['ghibli','levante','quattroporte','mc20','grecale'],
+    polestar: ['polestar 2','polestar 3'],
   };
 
   /** Try to extract make and model from a title string */
@@ -268,8 +279,22 @@
     });
   }
 
+  // Listen for SCAN_NOW from popup
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'SCAN_NOW') {
+      console.log('[CSL-CL] Manual scan triggered from popup');
+      document.querySelectorAll('[data-car-sales-scanned]').forEach(el => {
+        delete el.dataset.carSalesScanned;
+      });
+      document.querySelectorAll('.csl-overlay').forEach(el => el.remove());
+      scanPage();
+      sendResponse({ success: true });
+    }
+    return false;
+  });
+
   // Start
-  console.log('[Car Sales Scout] Craigslist scout active');
+  console.log('[CSL-CL] Craigslist scout active');
   scanPage();
 
   // Observe for dynamic content

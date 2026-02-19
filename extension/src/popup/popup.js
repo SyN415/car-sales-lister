@@ -161,10 +161,22 @@ scrapeNowBtn.addEventListener('click', async () => {
   scrapeNowBtn.textContent = 'Scanning...';
 
   try {
+    // 1. Tell the active tab's content script to rescan the visible page
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      try {
+        await chrome.tabs.sendMessage(tab.id, { type: 'SCAN_NOW' });
+      } catch (_) {
+        // Content script may not be on this page — that's okay
+      }
+    }
+
+    // 2. Also tell the service worker to trigger backend scraping
     await Promise.all([
       chrome.runtime.sendMessage({ type: 'SCRAPE_NOW', platform: 'facebook' }),
       chrome.runtime.sendMessage({ type: 'SCRAPE_NOW', platform: 'craigslist' }),
     ]);
+
     scrapeNowBtn.textContent = 'Scan Complete!';
     setTimeout(() => {
       scrapeNowBtn.textContent = 'Scan Now';

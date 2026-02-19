@@ -42,7 +42,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["*://*.facebook.com/marketplace/*"],
+      "matches": ["*://*.facebook.com/*"],
       "css": ["src/content/overlay.css"],
       "js": ["src/content/overlay-ui.js", "src/content/facebook-scout.js"],
       "run_at": "document_idle"
