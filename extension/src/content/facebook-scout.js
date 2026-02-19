@@ -33,6 +33,60 @@
     'gmc', 'lincoln', 'mitsubishi',
   ];
 
+  // Make-model mapping for extraction from titles
+  const MAKES = {
+    toyota: ['camry','corolla','rav4','tacoma','highlander','4runner','tundra','prius','supra','sienna','avalon'],
+    honda: ['civic','accord','cr-v','pilot','odyssey','hr-v','ridgeline','passport','fit','insight'],
+    ford: ['f-150','f150','mustang','explorer','escape','bronco','ranger','edge','expedition','fusion','focus','maverick'],
+    chevrolet: ['silverado','equinox','malibu','tahoe','traverse','camaro','colorado','suburban','blazer','trax'],
+    chevy: ['silverado','equinox','malibu','tahoe','traverse','camaro','colorado','suburban','blazer','trax'],
+    bmw: ['3 series','5 series','x3','x5','x1','m3','m5','330i','530i','x7'],
+    'mercedes-benz': ['c-class','e-class','glc','gle','a-class','s-class','gla','cla'],
+    mercedes: ['c-class','e-class','glc','gle','a-class','s-class','gla','cla','c300','e350'],
+    audi: ['a4','a6','q5','q7','a3','q3','a5','e-tron'],
+    nissan: ['altima','rogue','sentra','pathfinder','frontier','murano','maxima','kicks','versa'],
+    hyundai: ['elantra','tucson','santa fe','sonata','kona','palisade','venue','ioniq'],
+    kia: ['forte','sportage','telluride','sorento','seltos','soul','k5','carnival'],
+    subaru: ['outback','forester','crosstrek','impreza','wrx','ascent','legacy'],
+    volkswagen: ['jetta','tiguan','atlas','golf','passat','taos','id.4'],
+    vw: ['jetta','tiguan','atlas','golf','passat','taos','id.4'],
+    mazda: ['mazda3','mazda6','cx-5','cx-30','cx-50','cx-9','mx-5','miata'],
+    jeep: ['wrangler','grand cherokee','cherokee','compass','gladiator','renegade'],
+    ram: ['1500','2500','3500'],
+    dodge: ['charger','challenger','durango','hornet'],
+    tesla: ['model 3','model y','model s','model x','cybertruck'],
+    lexus: ['rx','es','nx','is','gx','lx','ux'],
+    acura: ['mdx','rdx','tlx','integra'],
+    volvo: ['xc90','xc60','xc40','s60','s90','v60'],
+    porsche: ['cayenne','macan','911','taycan','panamera'],
+    buick: ['encore','envision','enclave'],
+    cadillac: ['escalade','xt5','xt4','ct5','ct4'],
+    gmc: ['sierra','terrain','acadia','yukon','canyon'],
+    lincoln: ['navigator','aviator','corsair','nautilus'],
+    chrysler: ['pacifica','300'],
+    mitsubishi: ['outlander','eclipse cross','mirage'],
+  };
+
+  /** Try to extract make and model from a title string */
+  function extractMakeModel(title) {
+    if (!title) return { make: null, model: null };
+    const lower = title.toLowerCase();
+    for (const [make, models] of Object.entries(MAKES)) {
+      if (lower.includes(make)) {
+        for (const model of models) {
+          if (lower.includes(model)) {
+            // Normalize make name
+            const normalizedMake = make === 'chevy' ? 'chevrolet' : make === 'vw' ? 'volkswagen' : make;
+            return { make: normalizedMake, model };
+          }
+        }
+        const normalizedMake = make === 'chevy' ? 'chevrolet' : make === 'vw' ? 'volkswagen' : make;
+        return { make: normalizedMake, model: null };
+      }
+    }
+    return { make: null, model: null };
+  }
+
   function isCarListing(title) {
     if (!title) return false;
     const lower = title.toLowerCase();
@@ -67,12 +121,15 @@
 
       const price = texts.find(t => /^\$/.test(t));
       const location = texts.find(t => t.includes(',') && !t.includes('$') && t !== title);
+      const { make, model } = extractMakeModel(title);
 
       return {
         platform: 'facebook',
         title,
         price: extractPriceFromText(price),
         year: extractYearFromText(title),
+        make,
+        model,
         seller_location: location || null,
         images: img?.src ? [img.src] : [],
         url: link || window.location.href,
@@ -95,12 +152,17 @@
 
       if (!title || !isCarListing(title)) return null;
 
+      const { make, model } = extractMakeModel(title);
+      const description = descEl?.textContent?.trim() || null;
+
       return {
         platform: 'facebook',
         title,
         price: extractPriceFromText(priceEl?.textContent),
-        description: descEl?.textContent?.trim() || null,
+        description,
         year: extractYearFromText(title),
+        make,
+        model,
         seller_name: sellerEl?.textContent?.trim() || null,
         seller_location: locationEl?.textContent?.trim() || null,
         url: window.location.href,
@@ -133,7 +195,13 @@
     // Detail page
     if (window.location.href.includes('/item/')) {
       const listing = extractDetailPageListing();
-      if (listing) submitListing(listing);
+      if (listing) {
+        submitListing(listing);
+        // Inject deal analysis panel
+        if (window.CarSalesOverlay) {
+          window.CarSalesOverlay.injectDetailPanel(listing);
+        }
+      }
       return;
     }
 
@@ -144,7 +212,13 @@
       card.dataset.carSalesScanned = 'true';
 
       const listing = extractListingFromCard(card);
-      if (listing) submitListing(listing);
+      if (listing) {
+        submitListing(listing);
+        // Inject deal badge on the card
+        if (window.CarSalesOverlay) {
+          window.CarSalesOverlay.injectBadge(card, listing);
+        }
+      }
     });
   }
 

@@ -1,7 +1,7 @@
 // Extension configuration
 const CONFIG = {
-  // Backend API URL - update for production
-  API_BASE_URL: 'http://localhost:3000',
+  // Backend API URL
+  API_BASE_URL: 'https://car-sales-lister.onrender.com',
 
   // Supabase config - loaded from storage or defaults
   SUPABASE_URL: '',

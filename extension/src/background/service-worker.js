@@ -62,8 +62,23 @@ async function handleMessage(message, sender) {
     case 'GET_DEAL_SCORE':
       return await getDealScore(message.listingId);
 
+    case 'GET_VALUATION':
+      return await getValuation(message.data);
+
+    case 'ADD_TO_WATCHLIST':
+      return await addToWatchlist(message.data);
+
     case 'SCRAPE_NOW':
       return await triggerScrape(message.platform);
+
+    case 'OPEN_DASHBOARD':
+      chrome.tabs.create({ url: CONFIG.API_BASE_URL + '/dashboard' });
+      return { success: true };
+
+    case 'OPEN_POPUP':
+      // Can't programmatically open the popup, but we can open the app login
+      chrome.tabs.create({ url: CONFIG.API_BASE_URL + '/login' });
+      return { success: true };
 
     default:
       return { success: false, error: `Unknown message type: ${message.type}` };
@@ -118,6 +133,40 @@ async function triggerScrape(platform) {
     });
   } catch (error) {
     console.error(`[Car Sales Lister] Scrape ${platform} error:`, error);
+  }
+}
+
+async function getValuation(data) {
+  if (!authToken) return { success: false, error: 'Not authenticated' };
+  try {
+    const params = new URLSearchParams({
+      make: data.make,
+      model: data.model,
+      year: String(data.year),
+      mileage: String(data.mileage || 50000),
+      condition: data.condition || 'good',
+    });
+    if (data.vin) params.set('vin', data.vin);
+
+    const result = await apiRequest(`/api/valuations/kbb?${params.toString()}`);
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Valuation error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function addToWatchlist(data) {
+  if (!authToken) return { success: false, error: 'Not authenticated' };
+  try {
+    const result = await apiRequest('/api/watchlists', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Add to watchlist error:', error);
+    return { success: false, error: error.message };
   }
 }
 
