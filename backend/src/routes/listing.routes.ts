@@ -29,7 +29,7 @@ router.post('/', verifyToken, requireAuth, async (req: Request, res: Response) =
       condition: body.condition || null,
       location: body.seller_location || body.location || null,
       images: body.images || [],
-      seller_info: body.seller_name ? { name: body.seller_name } : null,
+      seller_info: body.seller_name ? { name: body.seller_name } : undefined,
       platform_url: body.url || body.platform_url || '',
     };
 
