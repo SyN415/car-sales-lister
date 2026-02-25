@@ -53,8 +53,15 @@ async function handleMessage(message, sender) {
       await chrome.storage.local.set({ [CONFIG.STORAGE_KEYS.AUTH_TOKEN]: message.token });
       return { success: true };
 
-    case 'GET_AUTH_STATUS':
-      return { success: true, isAuthenticated: !!authToken };
+    case 'GET_AUTH_STATUS': {
+      // Reload from storage every time — MV3 service workers can be terminated
+      // at any time, wiping the in-memory authToken. onInstalled only fires on
+      // install/update, not on worker wake, so we must check storage directly.
+      const stored = await chrome.storage.local.get([CONFIG.STORAGE_KEYS.AUTH_TOKEN]);
+      const token = stored[CONFIG.STORAGE_KEYS.AUTH_TOKEN] || null;
+      authToken = token; // refresh in-memory cache
+      return { success: true, isAuthenticated: !!token };
+    }
 
     case 'LISTING_FOUND':
       return await submitListing(message.listing);
@@ -85,11 +92,23 @@ async function handleMessage(message, sender) {
   }
 }
 
+// ---- Auth Helper ----
+// MV3 service workers can be terminated at any time, wiping in-memory state.
+// Always reload the token from storage before using it.
+async function ensureAuthToken() {
+  if (!authToken) {
+    const stored = await chrome.storage.local.get([CONFIG.STORAGE_KEYS.AUTH_TOKEN]);
+    authToken = stored[CONFIG.STORAGE_KEYS.AUTH_TOKEN] || null;
+  }
+  return authToken;
+}
+
 // ---- API Helpers ----
 async function apiRequest(path, options = {}) {
+  const token = await ensureAuthToken();
   const url = `${CONFIG.API_BASE_URL}${path}`;
   const headers = { 'Content-Type': 'application/json' };
-  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
   if (!response.ok) {
@@ -122,7 +141,7 @@ async function getDealScore(listingId) {
 }
 
 async function triggerScrape(platform) {
-  if (!authToken) return;
+  if (!(await ensureAuthToken())) return;
   try {
     await apiRequest('/api/admin/scrape', {
       method: 'POST',
@@ -137,7 +156,7 @@ async function triggerScrape(platform) {
 }
 
 async function getValuation(data) {
-  if (!authToken) return { success: false, error: 'Not authenticated' };
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
   try {
     const params = new URLSearchParams({
       make: data.make,
@@ -157,7 +176,7 @@ async function getValuation(data) {
 }
 
 async function addToWatchlist(data) {
-  if (!authToken) return { success: false, error: 'Not authenticated' };
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
   try {
     const result = await apiRequest('/api/watchlists', {
       method: 'POST',
@@ -171,7 +190,7 @@ async function addToWatchlist(data) {
 }
 
 async function checkForNewAlerts() {
-  if (!authToken) return;
+  if (!(await ensureAuthToken())) return;
   try {
     const result = await apiRequest('/api/alerts/count');
     const count = result.data?.unread_count || 0;

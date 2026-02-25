@@ -152,46 +152,105 @@
   /*  DOM extraction — detail page (resilient approach)               */
   /* ================================================================ */
 
+  /**
+   * Find the active listing container on a detail page.
+   * Facebook opens listings in a dialog/modal overlay on top of the feed.
+   * We must scope queries to this container to avoid reading stale text
+   * from previously viewed listings still in the background DOM.
+   */
+  function findListingContainer() {
+    // Strategy 1: Look for dialog / modal overlays (most reliable)
+    // Facebook typically uses role="dialog" or aria-modal for the listing overlay
+    const dialogs = document.querySelectorAll('[role="dialog"], [aria-modal="true"]');
+    for (const d of dialogs) {
+      // The listing dialog usually contains the item URL or a price
+      const text = d.innerText || '';
+      if (text.length > 100 && /\$[\d,]+/.test(text)) {
+        log('Using dialog container, text length:', text.length);
+        return d;
+      }
+    }
+
+    // Strategy 2: Look for the main content area that contains the current item ID
+    const itemId = window.location.href.match(/\/item\/(\d+)/)?.[1];
+    if (itemId) {
+      // Find a link to this item within the page — its container is likely the active listing
+      const selfLinks = document.querySelectorAll(`a[href*="/item/${itemId}"]`);
+      for (const link of selfLinks) {
+        // Walk up to find a substantial container
+        let container = link;
+        for (let i = 0; i < 12; i++) {
+          if (!container.parentElement || container.parentElement === document.body) break;
+          container = container.parentElement;
+          const t = container.innerText || '';
+          if (t.length > 200 && /\$[\d,]+/.test(t)) {
+            log('Using item-link ancestor container, text length:', t.length);
+            return container;
+          }
+        }
+      }
+    }
+
+    // Strategy 3: Look for the largest visible content area with a price
+    // (the listing detail pane is usually the dominant visible element)
+    const mainContent = document.querySelector('[role="main"]');
+    if (mainContent) {
+      const text = mainContent.innerText || '';
+      if (text.length > 100) {
+        log('Using role=main container, text length:', text.length);
+        return mainContent;
+      }
+    }
+
+    // Fallback: use entire body (last resort)
+    log('No specific container found, using document.body');
+    return document.body;
+  }
+
   function extractDetailPageListing() {
     log('Attempting detail page extraction…');
 
-    // Strategy: Gather ALL visible text spans and look for car-related content
-    // Facebook wraps almost everything in <span dir="auto"> or plain <span>
+    // Scope all queries to the active listing container (dialog/modal)
+    // to avoid picking up stale text from previously viewed listings
+    const container = findListingContainer();
+    const allText = container.innerText || '';
+    log('Container text length:', allText.length);
 
-    const allText = document.body.innerText || '';
-    log('Page text length:', allText.length);
-
-    // 1. Try to find a title — look for large text or the first heading-like element
+    // 1. Try to find a title within the container
     let title = null;
 
-    // Try <h1> first (sometimes Facebook uses it)
-    const h1 = document.querySelector('h1');
-    if (h1) {
-      title = h1.textContent?.trim();
-      log('Found <h1>:', title);
+    // Try headings within the container first
+    const headings = container.querySelectorAll('[role="heading"], h1, h2, [aria-level]');
+    for (const h of headings) {
+      const t = h.textContent?.trim();
+      // Skip generic headings like "Notifications", "Marketplace", etc.
+      if (t && t.length > 5 && t.length < 200 && isCarListing(t)) {
+        title = t;
+        log('Found heading with car info:', title);
+        break;
+      }
     }
 
-    // If no <h1>, look for prominent spans with larger text or heading role
+    // Fallback: look for spans within the container that contain year + make
     if (!title) {
-      const headings = document.querySelectorAll('[role="heading"], [aria-level]');
-      for (const h of headings) {
-        const t = h.textContent?.trim();
-        if (t && t.length > 5 && t.length < 200) {
+      const spans = container.querySelectorAll('span[dir="auto"], span');
+      for (const span of spans) {
+        const t = span.textContent?.trim();
+        if (t && t.length > 8 && t.length < 200 && isCarListing(t) && extractYear(t)) {
           title = t;
-          log('Found role=heading:', title);
+          log('Found car title from container spans:', title);
           break;
         }
       }
     }
 
-    // Fallback: look for spans that contain a year pattern + make keyword
-    if (!title || !isCarListing(title)) {
-      const spans = document.querySelectorAll('span[dir="auto"], span');
-      for (const span of spans) {
-        const t = span.textContent?.trim();
-        if (t && t.length > 8 && t.length < 200 && isCarListing(t) && extractYear(t)) {
-          title = t;
-          log('Found car title from spans:', title);
+    // Last resort: scan all text for a line with a year and car keyword
+    if (!title) {
+      const lines = allText.split('\n').map(l => l.trim()).filter(l => l.length > 5);
+      for (const line of lines) {
+        if (isCarListing(line) && extractYear(line) && line.length < 200) {
+          title = line;
+          log('Found car title from text lines:', title);
           break;
         }
       }
@@ -207,30 +266,29 @@
       return null;
     }
 
-    // 2. Extract price — look for $ pattern in prominent spans
+    // 2. Extract price — look for $ pattern within the container
     let price = null;
-    const spans = document.querySelectorAll('span[dir="auto"], span');
-    for (const span of spans) {
+    const priceSpans = container.querySelectorAll('span[dir="auto"], span');
+    for (const span of priceSpans) {
       const t = span.textContent?.trim();
       if (t && /^\$[\d,]+$/.test(t)) {
         price = extractPrice(t);
-        if (price && price >= 100) {  // ignore very small amounts
+        if (price && price >= 100) {
           log('Found price:', price);
           break;
         }
       }
     }
 
-    // Fallback: search all text for first price
+    // Fallback: search container text for first price
     if (!price) {
       price = extractPrice(allText);
-      log('Fallback price from full text:', price);
+      log('Fallback price from container text:', price);
     }
 
-    // 3. Extract description
+    // 3. Extract description — longest text block within container
     let description = null;
-    // Look for the longest text block on the page that might be a description
-    const textBlocks = document.querySelectorAll('span[dir="auto"]');
+    const textBlocks = container.querySelectorAll('span[dir="auto"]');
     let longestDesc = '';
     for (const span of textBlocks) {
       const t = span.textContent?.trim();
@@ -240,19 +298,18 @@
     }
     if (longestDesc) description = longestDesc;
 
-    // 4. Extract structured details from description + allText
+    // 4. Extract structured details
     const combined = [title, description, allText].filter(Boolean).join(' ');
     const { make, model } = extractMakeModel(title + ' ' + (description || ''));
     const year = extractYear(title) || extractYear(combined);
     const mileage = extractMileage(combined);
     const condition = extractCondition(combined);
 
-    // 5. Find location — look for "Listed in" or city, state patterns
+    // 5. Find location
     let location = null;
     const locMatch = allText.match(/(?:Listed in|Location[:\s]*)\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+)*,\s*[A-Z]{2})/);
     if (locMatch) location = locMatch[1];
     if (!location) {
-      // General city, state pattern
       const cityState = allText.match(/([A-Z][a-z]+(?:\s[A-Z][a-z]+)*,\s*[A-Z]{2})\s/);
       if (cityState) location = cityState[1];
     }
@@ -479,6 +536,12 @@
         log('URL changed:', lastUrl, '→', current);
         lastUrl = current;
         detailPageProcessedUrl = null; // allow new detail page to be processed
+        // Remove existing panel so it doesn't show stale data from previous listing
+        const existingPanel = document.getElementById('csl-detail-panel');
+        if (existingPanel) {
+          existingPanel.remove();
+          log('Removed stale detail panel');
+        }
         // Small delay to let Facebook render new content
         setTimeout(scanPage, 1500);
       }

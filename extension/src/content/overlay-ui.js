@@ -155,16 +155,19 @@
     return `https://www.kbb.com/cars-for-sale/all/?keyword=${encodeURIComponent(q)}`;
   }
 
-  /** Generate Edmunds URL */
+  /** Generate Edmunds URL — link to the canonical vehicle overview page.
+   *  Avoids /review/ (WAF-blocked) and /appraisal/ (404 for most vehicles). */
   function generateEdmundsUrl(listing) {
     const make = (listing.make || '').toLowerCase().replace(/\s+/g, '-');
     const model = (listing.model || '').toLowerCase().replace(/\s+/g, '-');
     const year = listing.year || '';
     if (make && model && year) {
-      return `https://www.edmunds.com/${make}/${model}/${year}/review/`;
+      // The base /{make}/{model}/{year}/ page is the canonical Edmunds URL
+      // that Google indexes — reliably accessible in real browsers.
+      return `https://www.edmunds.com/${make}/${model}/${year}/`;
     }
     const q = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
-    return `https://www.edmunds.com/search/?keyword=${encodeURIComponent(q)}`;
+    return `https://www.edmunds.com/appraisal/?keyword=${encodeURIComponent(q)}`;
   }
 
   /** Calculate fair offer price based on market data and deal score */
@@ -182,24 +185,119 @@
     return Math.round(Math.min(market * 0.90, asking * 0.82));
   }
 
-  /** Estimate annual ownership costs based on vehicle category */
+  /**
+   * Estimate annual ownership costs using real-world data by make/segment.
+   * Sources: AAA annual driving cost studies, EPA fuel economy data,
+   * RepairPal maintenance cost data, NHTSA/IIHS insurance data.
+   */
   function estimateOwnershipCosts(listing) {
     const make = (listing.make || '').toLowerCase();
+    const model = (listing.model || '').toLowerCase();
     const year = listing.year || 2015;
     const age = new Date().getFullYear() - year;
     const price = listing.price || 15000;
 
-    // Luxury / European tends to cost more
-    const luxury = ['bmw','mercedes','audi','porsche','lexus','infiniti','acura',
-      'genesis','maserati','land rover','jaguar','volvo','alfa romeo'].includes(make);
-    const electric = ['tesla','rivian','lucid','polestar'].includes(make);
+    // --- Vehicle segment classification ---
+    const isLuxury = ['bmw','mercedes','mercedes-benz','audi','porsche','lexus','infiniti',
+      'acura','genesis','maserati','land rover','jaguar','volvo','alfa romeo',
+      'cadillac','lincoln','bentley','rolls-royce','ferrari','lamborghini','aston martin'].includes(make);
+    const isElectric = ['tesla','rivian','lucid','polestar'].includes(make) ||
+      model.includes('electric') || model.includes('ev') || model.includes('bolt') ||
+      model.includes('leaf') || model.includes('ioniq') || model.includes('mach-e');
+    const isTruck = model.includes('f-150') || model.includes('silverado') || model.includes('sierra') ||
+      model.includes('ram') || model.includes('tundra') || model.includes('tacoma') ||
+      model.includes('frontier') || model.includes('colorado') || model.includes('ranger') ||
+      model.includes('gladiator') || model.includes('titan');
+    const isSUV = model.includes('suv') || model.includes('rav4') || model.includes('cr-v') ||
+      model.includes('explorer') || model.includes('highlander') || model.includes('4runner') ||
+      model.includes('tahoe') || model.includes('yukon') || model.includes('pilot') ||
+      model.includes('pathfinder') || model.includes('wrangler') || model.includes('cherokee') ||
+      model.includes('equinox') || model.includes('rogue') || model.includes('tucson') ||
+      model.includes('santa fe') || model.includes('outback') || model.includes('forester') ||
+      model.includes('cx-') || model.includes('tiguan') || model.includes('atlas');
 
-    const insurance = luxury ? 1800 : electric ? 1400 : 1200;
-    const fuel = electric ? 600 : (luxury ? 2600 : 2000);
-    const maintenance = luxury ? (800 + age * 120) : (500 + age * 80);
-    const depreciation = Math.round(price * (age < 3 ? 0.15 : age < 7 ? 0.10 : 0.06));
+    // --- INSURANCE (based on AAA 2024 data + vehicle value/age) ---
+    // AAA avg: sedan $1,771, SUV $1,908, truck $1,750, EV $1,632, luxury $2,200+
+    // Older/cheaper cars cost less to insure (lower comp/collision)
+    let baseInsurance;
+    if (isElectric) baseInsurance = 1630;
+    else if (isLuxury) baseInsurance = 2200;
+    else if (isTruck) baseInsurance = 1750;
+    else if (isSUV) baseInsurance = 1910;
+    else baseInsurance = 1770;
+    // Adjust for vehicle value — cheaper cars cost less to insure
+    const valueRatio = Math.min(price / 30000, 1.5);
+    const insurance = Math.round(baseInsurance * (0.6 + 0.4 * valueRatio));
 
-    return { insurance, fuel, maintenance, depreciation, total: insurance + fuel + maintenance + depreciation };
+    // --- FUEL / CHARGING (based on EPA combined MPG by segment) ---
+    // Assumes 12,000 mi/yr, gas at ~$3.80/gal (national avg 2024-2025)
+    // Electricity at ~$0.16/kWh, EVs avg 3.5 mi/kWh
+    const annualMiles = 12000;
+    const gasPrice = 3.80;
+    let fuel;
+    if (isElectric) {
+      // ~3.5 mi/kWh, $0.16/kWh → ~$549/yr
+      fuel = Math.round((annualMiles / 3.5) * 0.16);
+    } else {
+      // Estimated combined MPG by make/segment
+      const mpgByMake = {
+        'toyota': 30, 'honda': 31, 'mazda': 29, 'hyundai': 30, 'kia': 29,
+        'subaru': 27, 'nissan': 28, 'volkswagen': 28, 'mitsubishi': 27,
+        'ford': 24, 'chevrolet': 24, 'gmc': 20, 'dodge': 22, 'ram': 18,
+        'jeep': 21, 'chrysler': 24, 'buick': 26,
+        'bmw': 25, 'mercedes-benz': 24, 'mercedes': 24, 'audi': 25,
+        'lexus': 26, 'acura': 26, 'infiniti': 23, 'volvo': 26,
+        'genesis': 25, 'cadillac': 22, 'lincoln': 22, 'land rover': 19,
+        'jaguar': 23, 'porsche': 22, 'maserati': 18, 'alfa romeo': 24,
+        'mini': 30, 'fiat': 31,
+      };
+      let mpg = mpgByMake[make] || 25;
+      // Trucks and large SUVs get worse MPG
+      if (isTruck) mpg = Math.min(mpg, 20);
+      else if (isSUV) mpg = Math.min(mpg, 25);
+      // Older cars tend to get slightly worse MPG
+      if (age > 10) mpg *= 0.92;
+      else if (age > 5) mpg *= 0.96;
+      fuel = Math.round((annualMiles / mpg) * gasPrice);
+    }
+
+    // --- MAINTENANCE (based on RepairPal data + age factor) ---
+    // RepairPal annual avg by make (2024 data):
+    const maintenanceByMake = {
+      'toyota': 441, 'honda': 428, 'mazda': 462, 'hyundai': 468, 'kia': 474,
+      'subaru': 617, 'nissan': 500, 'volkswagen': 676, 'mitsubishi': 535,
+      'ford': 775, 'chevrolet': 649, 'gmc': 745, 'dodge': 634, 'ram': 691,
+      'jeep': 634, 'chrysler': 591, 'buick': 608,
+      'bmw': 968, 'mercedes-benz': 908, 'mercedes': 908, 'audi': 987,
+      'lexus': 551, 'acura': 501, 'infiniti': 638, 'volvo': 769,
+      'genesis': 580, 'cadillac': 783, 'lincoln': 879, 'land rover': 1174,
+      'jaguar': 1123, 'porsche': 1192, 'maserati': 1400, 'alfa romeo': 1072,
+      'mini': 846, 'fiat': 638, 'tesla': 410, 'rivian': 450, 'lucid': 500,
+    };
+    let baseMaint = maintenanceByMake[make] || 600;
+    // Maintenance costs increase with age — roughly 5-8% per year after 5 years
+    if (age > 5) {
+      const extraYears = age - 5;
+      const ageMultiplier = isLuxury ? 0.08 : 0.05;
+      baseMaint *= (1 + extraYears * ageMultiplier);
+    }
+    // Cap maintenance at reasonable levels
+    const maintenance = Math.round(Math.min(baseMaint, isLuxury ? 3500 : 2500));
+
+    // --- DEPRECIATION (based on current value, not purchase price) ---
+    // Use the asking price as proxy for current value
+    // Newer cars depreciate faster; old cars barely depreciate
+    let depRate;
+    if (age <= 1) depRate = 0.20;
+    else if (age <= 3) depRate = 0.15;
+    else if (age <= 5) depRate = 0.12;
+    else if (age <= 10) depRate = 0.08;
+    else if (age <= 15) depRate = 0.04;
+    else depRate = 0.02; // Very old cars barely lose value
+    const depreciation = Math.round(price * depRate);
+
+    const total = insurance + fuel + maintenance + depreciation;
+    return { insurance, fuel, maintenance, depreciation, total };
   }
 
   /** Build clipboard text for the listing */
