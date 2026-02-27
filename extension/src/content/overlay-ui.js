@@ -741,12 +741,21 @@
       </div>`;
     document.body.appendChild(loadPanel);
 
-    // Fetch valuation, gas price, and fuel economy in parallel
-    const [valResp, gasPriceResp, fuelEconResp] = await Promise.all([
+    // Fetch valuation + all extras in parallel
+    const hasMakeModel = listing.make && listing.model;
+    const hasYear = listing.year;
+    const [valResp, gasPriceResp, fuelEconResp, repairResp, factorsResp, resellResp] = await Promise.all([
       requestValuation(listing),
       swMessage({ type: 'GET_GAS_PRICE' }),
-      (listing.make && listing.model && listing.year)
+      (hasMakeModel && hasYear)
         ? swMessage({ type: 'GET_FUEL_ECONOMY', data: { make: listing.make, model: listing.model, year: listing.year } })
+        : Promise.resolve({ success: false }),
+      swMessage({ type: 'GET_REPAIR_ESTIMATE', data: { description: listing.description || '' } }),
+      hasMakeModel
+        ? swMessage({ type: 'GET_VEHICLE_FACTORS', data: { make: listing.make, model: listing.model, year: listing.year || '' } })
+        : Promise.resolve({ success: false }),
+      (hasMakeModel && hasYear && listing.price)
+        ? swMessage({ type: 'GET_RESELLABILITY', data: { make: listing.make, model: listing.model, year: listing.year, price: listing.price, mileage: listing.mileage || 50000 } })
         : Promise.resolve({ success: false }),
     ]);
     loadPanel.remove();
@@ -754,13 +763,22 @@
     const valuation = valResp.success ? valResp.data : null;
     const score = localDealScore(listing, valuation);
 
-    // Build extras with live gas price and MPG
+    // Build extras object with all fetched data
     const extras = {};
     if (gasPriceResp.success && gasPriceResp.data) {
       extras.gasPricePerGallon = gasPriceResp.data.price_per_gallon;
     }
     if (fuelEconResp.success && fuelEconResp.data) {
       extras.mpgCombined = fuelEconResp.data.mpg_combined;
+    }
+    if (repairResp.success && repairResp.data) {
+      extras.repairEstimate = repairResp.data;
+    }
+    if (factorsResp.success && factorsResp.data) {
+      extras.vehicleFactors = factorsResp.data;
+    }
+    if (resellResp.success && resellResp.data) {
+      extras.resellability = resellResp.data;
     }
 
     const panel = createDetailPanel(listing, valuation, extras);

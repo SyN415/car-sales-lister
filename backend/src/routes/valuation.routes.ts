@@ -111,6 +111,39 @@ router.get('/nhtsa', verifyToken, requireAuth, async (req: Request, res: Respons
   }
 });
 
+// GET /api/valuations/repair-estimate - AI repair cost estimate from description
+router.get('/repair-estimate', verifyToken, requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { description } = req.query;
+    const result = await aiService.estimateRepairCosts((description as string) || '');
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/valuations/vehicle-factors - AI vehicle factor badges
+router.get('/vehicle-factors', verifyToken, requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { make, model, year } = req.query;
+
+    if (!make || !model) {
+      res.status(400).json({ success: false, error: 'Required: make, model' });
+      return;
+    }
+
+    const result = await aiService.getVehicleFactors(
+      Number(year) || new Date().getFullYear(),
+      make as string,
+      model as string
+    );
+
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // GET /api/valuations/fuel-economy - Get fuel economy data
 router.get('/fuel-economy', verifyToken, requireAuth, async (req: Request, res: Response) => {
   try {

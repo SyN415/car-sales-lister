@@ -93,6 +93,15 @@ async function handleMessage(message, sender) {
     case 'GET_FUEL_ECONOMY':
       return await getFuelEconomy(message.data);
 
+    case 'GET_REPAIR_ESTIMATE':
+      return await getRepairEstimate(message.data);
+
+    case 'GET_VEHICLE_FACTORS':
+      return await getVehicleFactors(message.data);
+
+    case 'GET_RESELLABILITY':
+      return await getResellability(message.data);
+
     default:
       return { success: false, error: `Unknown message type: ${message.type}` };
   }
@@ -239,6 +248,47 @@ async function getFuelEconomy(data) {
     return { success: true, data: result.data };
   } catch (error) {
     console.error('[Car Sales Lister] Fuel economy error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function getRepairEstimate(data) {
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
+  try {
+    const params = new URLSearchParams({ description: data?.description || '' });
+    const result = await apiRequest(`/api/valuations/repair-estimate?${params.toString()}`);
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Repair estimate error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function getVehicleFactors(data) {
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
+  if (!data?.make || !data?.model) return { success: false, error: 'Missing make/model' };
+  try {
+    const params = new URLSearchParams({ make: data.make, model: data.model, year: String(data.year || '') });
+    const result = await apiRequest(`/api/valuations/vehicle-factors?${params.toString()}`);
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Vehicle factors error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function getResellability(data) {
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
+  if (!data?.make || !data?.model || !data?.year || !data?.price) return { success: false, error: 'Missing required fields' };
+  try {
+    const params = new URLSearchParams({
+      make: data.make, model: data.model, year: String(data.year),
+      price: String(data.price), mileage: String(data.mileage || 50000),
+    });
+    const result = await apiRequest(`/api/valuations/resellability?${params.toString()}`);
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Resellability error:', error);
     return { success: false, error: error.message };
   }
 }
