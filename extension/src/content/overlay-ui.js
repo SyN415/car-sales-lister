@@ -424,8 +424,8 @@
     const fairOffer = calculateFairOffer(listing, valuation, score);
     const kbbUrl = generateKBBUrl(listing);
     const edmundsUrl = generateEdmundsUrl(listing);
-    const costs = estimateOwnershipCosts(listing, ex.gasPricePerGallon, ex.mpgCombined);
     const ex = extras || {};
+    const costs = estimateOwnershipCosts(listing, ex.gasPricePerGallon, ex.mpgCombined);
 
     return `
       <div class="csl-panel-body">
