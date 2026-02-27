@@ -64,7 +64,7 @@ Return ONLY valid JSON, no other text.`;
       const response = await this.client.chat.completions.create({
         model: config.OPENROUTER_MODEL,
         messages: [
-          { role: 'system', content: 'You are an expert automotive appraiser and car buying advisor. Respond only with valid JSON. If images are provided, inspect them for visible damage, rust, interior wear, fluid leaks, tire condition, and overall presentation quality.' },
+          { role: 'system', content: 'You are an expert car flipper and wholesale vehicle analyst specializing in the SF Bay Area private-party market. Respond only with valid JSON. If images are provided, inspect them for visible damage, rust, interior wear, fluid leaks, tire condition, and overall presentation quality.' },
           { role: 'user', content: userContent },
         ],
         temperature: 0.3,

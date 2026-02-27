@@ -87,6 +87,12 @@ async function handleMessage(message, sender) {
       chrome.tabs.create({ url: CONFIG.API_BASE_URL + '/login' });
       return { success: true };
 
+    case 'GET_GAS_PRICE':
+      return await getGasPrice();
+
+    case 'GET_FUEL_ECONOMY':
+      return await getFuelEconomy(message.data);
+
     default:
       return { success: false, error: `Unknown message type: ${message.type}` };
   }
@@ -210,5 +216,29 @@ async function checkForNewAlerts() {
     }
   } catch (error) {
     console.error('[Car Sales Lister] Check alerts error:', error);
+  }
+}
+
+async function getGasPrice() {
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
+  try {
+    const result = await apiRequest('/api/valuations/gas-price');
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Gas price error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function getFuelEconomy(data) {
+  if (!(await ensureAuthToken())) return { success: false, error: 'Not authenticated' };
+  if (!data?.make || !data?.model || !data?.year) return { success: false, error: 'Missing make/model/year' };
+  try {
+    const params = new URLSearchParams({ make: data.make, model: data.model, year: String(data.year) });
+    const result = await apiRequest(`/api/valuations/fuel-economy?${params.toString()}`);
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('[Car Sales Lister] Fuel economy error:', error);
+    return { success: false, error: error.message };
   }
 }

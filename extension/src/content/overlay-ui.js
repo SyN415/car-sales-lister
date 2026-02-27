@@ -208,7 +208,7 @@
    * Sources: AAA annual driving cost studies, EPA fuel economy data,
    * RepairPal maintenance cost data, NHTSA/IIHS insurance data.
    */
-  function estimateOwnershipCosts(listing) {
+  function estimateOwnershipCosts(listing, gasPricePerGallon, mpgCombined) {
     const make = (listing.make || '').toLowerCase();
     const model = (listing.model || '').toLowerCase();
     const year = listing.year || 2015;
@@ -251,7 +251,7 @@
     // Assumes 12,000 mi/yr, gas at ~$3.80/gal (national avg 2024-2025)
     // Electricity at ~$0.16/kWh, EVs avg 3.5 mi/kWh
     const annualMiles = 12000;
-    const gasPrice = 3.80;
+    const gasPrice = gasPricePerGallon || 4.99;
     let fuel;
     if (isElectric) {
       // ~3.5 mi/kWh, $0.16/kWh → ~$549/yr
@@ -269,7 +269,7 @@
         'jaguar': 23, 'porsche': 22, 'maserati': 18, 'alfa romeo': 24,
         'mini': 30, 'fiat': 31,
       };
-      let mpg = mpgByMake[make] || 25;
+      let mpg = mpgCombined || mpgByMake[make] || 25;
       // Trucks and large SUVs get worse MPG
       if (isTruck) mpg = Math.min(mpg, 20);
       else if (isSUV) mpg = Math.min(mpg, 25);
@@ -315,7 +315,7 @@
     const depreciation = Math.round(price * depRate);
 
     const total = insurance + fuel + maintenance + depreciation;
-    return { insurance, fuel, maintenance, depreciation, total };
+    return { insurance, fuel, maintenance, depreciation, total, gasPrice };
   }
 
   /** Build factorness badge pills HTML */
@@ -424,7 +424,7 @@
     const fairOffer = calculateFairOffer(listing, valuation, score);
     const kbbUrl = generateKBBUrl(listing);
     const edmundsUrl = generateEdmundsUrl(listing);
-    const costs = estimateOwnershipCosts(listing);
+    const costs = estimateOwnershipCosts(listing, ex.gasPricePerGallon, ex.mpgCombined);
     const ex = extras || {};
 
     return `
@@ -514,6 +514,7 @@
           <div class="csl-expandable-content">
             <div class="csl-cost-row"><span>Insurance</span><span>~${fmt(costs.insurance)}/yr</span></div>
             <div class="csl-cost-row"><span>Fuel / Charging</span><span>~${fmt(costs.fuel)}/yr</span></div>
+            <div class="csl-cost-footnote" style="font-size:10px;color:#94a3b8;margin-top:-4px;padding-left:12px;">(~$${costs.gasPrice.toFixed(2)}/gal CA avg)</div>
             <div class="csl-cost-row"><span>Maintenance</span><span>~${fmt(costs.maintenance)}/yr</span></div>
             <div class="csl-cost-row"><span>Depreciation</span><span>~${fmt(costs.depreciation)}/yr</span></div>
             <div class="csl-cost-row csl-cost-total"><span>Total</span><span>~${fmt(costs.total)}/yr</span></div>
@@ -740,12 +741,29 @@
       </div>`;
     document.body.appendChild(loadPanel);
 
-    const valResp = await requestValuation(listing);
+    // Fetch valuation, gas price, and fuel economy in parallel
+    const [valResp, gasPriceResp, fuelEconResp] = await Promise.all([
+      requestValuation(listing),
+      swMessage({ type: 'GET_GAS_PRICE' }),
+      (listing.make && listing.model && listing.year)
+        ? swMessage({ type: 'GET_FUEL_ECONOMY', data: { make: listing.make, model: listing.model, year: listing.year } })
+        : Promise.resolve({ success: false }),
+    ]);
     loadPanel.remove();
 
     const valuation = valResp.success ? valResp.data : null;
     const score = localDealScore(listing, valuation);
-    const panel = createDetailPanel(listing, valuation);
+
+    // Build extras with live gas price and MPG
+    const extras = {};
+    if (gasPriceResp.success && gasPriceResp.data) {
+      extras.gasPricePerGallon = gasPriceResp.data.price_per_gallon;
+    }
+    if (fuelEconResp.success && fuelEconResp.data) {
+      extras.mpgCombined = fuelEconResp.data.mpg_combined;
+    }
+
+    const panel = createDetailPanel(listing, valuation, extras);
     document.body.appendChild(panel);
     attachPanelListeners(panel, listing, valuation, score);
   }
