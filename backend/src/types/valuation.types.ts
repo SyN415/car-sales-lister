@@ -63,6 +63,7 @@ export interface ResellabilityScore {
   comp_count: number;
   price_percentile: number;
   resellability_score: number;
+  source?: 'comps' | 'ai_estimate';
 }
 
 export interface NhtsaResult {
@@ -86,7 +87,7 @@ export interface VehicleAnalysis {
   estimated_condition: string;
   condition_notes: string[];
   fair_market_value: number;
-  deal_rating: 'excellent' | 'good' | 'fair' | 'overpriced';
+  deal_rating: 'excellent' | 'good' | 'fair' | 'overpriced' | 'excellent_flip' | 'good_flip' | 'marginal_flip' | 'no_flip';
   deal_score: number;
   price_vs_market: number;
   depreciation_rate?: number;

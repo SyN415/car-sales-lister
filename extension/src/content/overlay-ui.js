@@ -70,17 +70,35 @@
     const score = localDealScore(listing, valuation);
     const tier = valuation ? tierFromScore(score) : 'unknown';
 
+    // Calculate flip $/day for the badge text
+    let flipLabel = tierLabel(tier);
+    let flipEmoji = tierEmoji(tier);
+    if (valuation && valuation.estimated_value && listing.price) {
+      const profit = valuation.estimated_value - listing.price;
+      const daysToSell = 14; // conservative default for badge
+      const holdingCost = 12 * daysToSell;
+      const netProfit = profit - holdingCost;
+      const perDay = Math.round(netProfit / daysToSell);
+      if (perDay > 0) {
+        flipLabel = `~${fmt(perDay)}/day`;
+        flipEmoji = perDay >= 100 ? '🔥' : perDay >= 50 ? '👍' : '💰';
+      } else {
+        flipLabel = `${fmt(perDay)}/day`;
+        flipEmoji = '⚠️';
+      }
+    }
+
     const badge = el('div', `csl-overlay csl-badge csl-badge--${tier}`);
     badge.innerHTML = `
-      <span class="csl-badge-icon">${tierEmoji(tier)}</span>
-      <span class="csl-badge-text">${tierLabel(tier)}</span>
+      <span class="csl-badge-icon">${flipEmoji}</span>
+      <span class="csl-badge-text">${flipLabel}</span>
       ${valuation ? `<span class="csl-badge-price">${fmt(valuation.estimated_value)}</span>` : ''}
       ${valuation ? `
         <div class="csl-badge-tooltip csl-overlay">
           <div class="csl-badge-tooltip-row"><span>Market Value</span><span>${fmt(valuation.estimated_value)}</span></div>
           <div class="csl-badge-tooltip-row"><span>Range</span><span>${fmt(valuation.low_value)} – ${fmt(valuation.high_value)}</span></div>
           <div class="csl-badge-tooltip-row"><span>Asking</span><span>${fmt(listing.price)}</span></div>
-          ${score != null ? `<div class="csl-badge-tooltip-row"><span>Score</span><span>${score}/100</span></div>` : ''}
+          ${score != null ? `<div class="csl-badge-tooltip-row"><span>Flip Score</span><span>${score}/100</span></div>` : ''}
         </div>` : ''}
     `;
     return badge;
@@ -526,6 +544,7 @@
         <div class="csl-resellability">
           📈 Resellability: ${ex.resellability.resellability_score}/10 — similar cars sell in ~${ex.resellability.median_days_to_sell} days in SF
           ${ex.resellability.comp_count > 0 ? `<span class="csl-comp-count">(${ex.resellability.comp_count} comps)</span>` : ''}
+          ${ex.resellability.source === 'ai_estimate' ? '<span class="csl-ai-tag">AI Est.</span>' : ''}
         </div>` : ''}
 
         ${buildFlipAnalysis(listing, valuation, ex.repairEstimate, ex.resellability)}

@@ -31,6 +31,9 @@ export const config = {
   // NHTSA (Recalls & Complaints)
   NHTSA_API_URL: 'https://api.nhtsa.gov',
 
+  // EIA (Energy Information Administration — gas prices)
+  EIA_API_KEY: process.env.EIA_API_KEY || '',
+
   // Bright Data (Web Scraping)
   BRIGHT_DATA_ZONE: process.env.BRIGHT_DATA_ZONE || '',
   BRIGHT_DATA_USERNAME: process.env.BRIGHT_DATA_USERNAME || '',

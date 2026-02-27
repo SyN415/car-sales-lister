@@ -1,5 +1,6 @@
 import supabaseAdmin from '../config/supabase';
 import { ResellabilityScore } from '../types/valuation.types';
+import { aiService } from './ai.service';
 
 class CompsService {
   /**
@@ -32,8 +33,9 @@ class CompsService {
         return this.defaultScore();
       }
 
-      if (!comps || comps.length === 0) {
-        return this.defaultScore();
+      if (!comps || comps.length < 3) {
+        console.log(`[CompsService] Only ${comps?.length || 0} comps found for ${year} ${make} ${model} — falling back to AI estimate`);
+        return aiService.estimateMarketVelocity(make, model, year, price);
       }
 
       // Filter by mileage band (±30k miles)
@@ -90,10 +92,11 @@ class CompsService {
         comp_count: finalComps.length,
         price_percentile: pricePercentile,
         resellability_score: score,
+        source: 'comps' as const,
       };
     } catch (error: any) {
       console.error('Comps service error:', error.message);
-      return this.defaultScore();
+      return aiService.estimateMarketVelocity(make, model, year, price);
     }
   }
 

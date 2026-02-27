@@ -4,6 +4,8 @@ import { vinDecoderService } from '../services/vin-decoder.service';
 import { aiService } from '../services/ai.service';
 import { compsService } from '../services/comps.service';
 import { nhtsaService } from '../services/nhtsa.service';
+import { fuelEconomyService } from '../services/fuel-economy.service';
+import { eiaService } from '../services/eia.service';
 import { verifyToken, requireAuth } from '../middleware/auth.middleware';
 import { validateVin } from '../middleware/validation.middleware';
 
@@ -103,6 +105,46 @@ router.get('/nhtsa', verifyToken, requireAuth, async (req: Request, res: Respons
       Number(year)
     );
 
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/valuations/fuel-economy - Get fuel economy data
+router.get('/fuel-economy', verifyToken, requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { make, model, year } = req.query;
+
+    if (!make || !model || !year) {
+      res.status(400).json({
+        success: false,
+        error: 'Required: make, model, year',
+      });
+      return;
+    }
+
+    const result = await fuelEconomyService.getFuelEconomy(
+      Number(year),
+      make as string,
+      model as string
+    );
+
+    if (!result) {
+      res.status(404).json({ success: false, error: 'No fuel economy data found' });
+      return;
+    }
+
+    res.json({ success: true, data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/valuations/gas-price - Get current California gas price from EIA
+router.get('/gas-price', verifyToken, requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const result = await eiaService.getCaliforniaGasPrice();
     res.json({ success: true, data: result });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
