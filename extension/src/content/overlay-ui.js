@@ -100,7 +100,7 @@
   /*  Detail Panel (individual listing pages)                            */
   /* ------------------------------------------------------------------ */
 
-  function createDetailPanel(listing, valuation) {
+  function createDetailPanel(listing, valuation, extras) {
     const score = localDealScore(listing, valuation);
     const tier = valuation ? tierFromScore(score) : 'unknown';
     const savings = valuation && listing.price ? valuation.estimated_value - listing.price : null;
@@ -114,7 +114,7 @@
     if (!valuation) {
       panel.innerHTML += buildLoginPrompt();
     } else {
-      panel.innerHTML += buildPanelBody(listing, valuation, score, tier, savings, savingsPositive);
+      panel.innerHTML += buildPanelBody(listing, valuation, score, tier, savings, savingsPositive, extras);
     }
 
     return panel;
@@ -300,6 +300,87 @@
     return { insurance, fuel, maintenance, depreciation, total };
   }
 
+  /** Build factorness badge pills HTML */
+  function buildFactorBadges(factors) {
+    if (!factors || !factors.length) return '';
+    const pills = factors.map(f => {
+      const colorClass = f.type === 'positive' ? 'csl-factor--positive'
+        : f.type === 'negative' ? 'csl-factor--negative'
+        : 'csl-factor--neutral';
+      return `<span class="csl-factor-pill ${colorClass}">${f.icon} ${f.label}</span>`;
+    }).join('');
+    return `<div class="csl-factor-badges">${pills}</div>`;
+  }
+
+  /** Build collapsible repair estimate section */
+  function buildRepairEstimateSection(repairEstimate) {
+    if (!repairEstimate || !repairEstimate.issues || repairEstimate.issues.length === 0) return '';
+    const issueRows = repairEstimate.issues.map(i => {
+      const sevClass = i.severity === 'major' ? 'csl-severity--major'
+        : i.severity === 'moderate' ? 'csl-severity--moderate'
+        : 'csl-severity--minor';
+      return `<div class="csl-cost-row">
+        <span><span class="csl-severity-dot ${sevClass}"></span>${i.description}</span>
+        <span>${fmt(i.cost_low)} – ${fmt(i.cost_high)}</span>
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="csl-expandable" data-csl-section="repair">
+        <div class="csl-expandable-header">
+          <span>🔧 Repair Estimate</span>
+          <span class="csl-chevron">›</span>
+        </div>
+        <div class="csl-expandable-content">
+          ${issueRows}
+          <div class="csl-cost-row csl-cost-total">
+            <span>Total Estimate</span>
+            <span>${fmt(repairEstimate.total_low)} – ${fmt(repairEstimate.total_high)}</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /** Build the Flip Analysis section showing profit calculation */
+  function buildFlipAnalysis(listing, valuation, repairEstimate, resellability) {
+    if (!valuation || !valuation.estimated_value || !listing.price) return '';
+
+    const retailValue = valuation.estimated_value;
+    const askPrice = listing.price;
+    const reconLow = repairEstimate ? repairEstimate.total_low : 0;
+    const reconHigh = repairEstimate ? repairEstimate.total_high : 0;
+    const daysToSell = resellability ? resellability.median_days_to_sell : 14;
+    const holdingCostPerDay = 12; // $10-$15/day avg
+    const holdingCost = Math.round(holdingCostPerDay * daysToSell);
+
+    const netProfitLow = retailValue - askPrice - reconHigh - holdingCost;
+    const netProfitHigh = retailValue - askPrice - reconLow - holdingCost;
+    const flipScoreLow = daysToSell > 0 ? Math.round(netProfitLow / daysToSell) : 0;
+    const flipScoreHigh = daysToSell > 0 ? Math.round(netProfitHigh / daysToSell) : 0;
+
+    const profitPositive = netProfitHigh > 0;
+
+    return `
+      <div class="csl-flip-analysis">
+        <div class="csl-flip-title">💰 Flip Analysis</div>
+        <div class="csl-flip-divider"></div>
+        <div class="csl-flip-row"><span>Est. Retail Value:</span><span>${fmt(retailValue)}</span></div>
+        <div class="csl-flip-row"><span>Asking Price:</span><span>-${fmt(askPrice)}</span></div>
+        ${reconHigh > 0 ? `<div class="csl-flip-row"><span>Est. Recon:</span><span>-${fmt(reconLow)}–${fmt(reconHigh)}</span></div>` : ''}
+        <div class="csl-flip-row"><span>Holding (${daysToSell} days):</span><span>-${fmt(holdingCost)}</span></div>
+        <div class="csl-flip-divider"></div>
+        <div class="csl-flip-row csl-flip-row--${profitPositive ? 'profit' : 'loss'}">
+          <span>Est. Net Profit:</span>
+          <span>${fmt(netProfitLow)}–${fmt(netProfitHigh)}</span>
+        </div>
+        <div class="csl-flip-row"><span>Days to Sell:</span><span>~${daysToSell} days</span></div>
+        <div class="csl-flip-row csl-flip-score">
+          <span>Flip Score:</span>
+          <span>${fmt(flipScoreLow)}–${fmt(flipScoreHigh)} /day</span>
+        </div>
+      </div>`;
+  }
+
   /** Build clipboard text for the listing */
   function buildClipboardText(listing, valuation, score) {
     const lines = [];
@@ -319,17 +400,19 @@
     return lines.join('\n');
   }
 
-  function buildPanelBody(listing, valuation, score, tier, savings, savingsPositive) {
+  function buildPanelBody(listing, valuation, score, tier, savings, savingsPositive, extras) {
     const yearMakeModel = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
     const metaParts = [listing.seller_location || listing.location, listing.mileage ? listing.mileage.toLocaleString() + ' mi' : null].filter(Boolean);
     const fairOffer = calculateFairOffer(listing, valuation, score);
     const kbbUrl = generateKBBUrl(listing);
     const edmundsUrl = generateEdmundsUrl(listing);
     const costs = estimateOwnershipCosts(listing);
+    const ex = extras || {};
 
     return `
       <div class="csl-panel-body">
         <div class="csl-vehicle-name">${yearMakeModel || listing.title}</div>
+        ${buildFactorBadges(ex.vehicleFactors)}
         ${metaParts.length ? `<div class="csl-vehicle-meta">📍 ${metaParts.join(' · ')}</div>` : ''}
 
         <div class="csl-price-row">
@@ -436,6 +519,16 @@
             </div>
           </div>
         </div>` : ''}
+
+        ${buildRepairEstimateSection(ex.repairEstimate)}
+
+        ${ex.resellability ? `
+        <div class="csl-resellability">
+          📈 Resellability: ${ex.resellability.resellability_score}/10 — similar cars sell in ~${ex.resellability.median_days_to_sell} days in SF
+          ${ex.resellability.comp_count > 0 ? `<span class="csl-comp-count">(${ex.resellability.comp_count} comps)</span>` : ''}
+        </div>` : ''}
+
+        ${buildFlipAnalysis(listing, valuation, ex.repairEstimate, ex.resellability)}
 
         <div class="csl-actions">
           <button class="csl-btn csl-btn--primary" data-csl-watchlist>＋ Watchlist</button>

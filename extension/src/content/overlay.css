@@ -479,3 +479,85 @@
   background: rgba(255,255,255,0.15);
   border-radius: 2px;
 }
+
+
+/* ---- Factorness Badge Pills ---- */
+.csl-factor-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0 4px;
+}
+.csl-factor-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.csl-factor--positive { background: rgba(16,185,129,0.18); color: #6ee7b7; }
+.csl-factor--negative { background: rgba(239,68,68,0.18); color: #fca5a5; }
+.csl-factor--neutral  { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+/* ---- Repair Estimate severity dots ---- */
+.csl-severity-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.csl-severity--minor    { background: #f59e0b; }
+.csl-severity--moderate { background: #f97316; }
+.csl-severity--major    { background: #ef4444; }
+
+/* ---- Resellability line ---- */
+.csl-resellability {
+  margin: 8px 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(16,185,129,0.08);
+  font-size: 12px;
+  color: #94a3b8;
+}
+.csl-comp-count {
+  opacity: 0.6;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* ---- Flip Analysis block ---- */
+.csl-flip-analysis {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.csl-flip-title {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.csl-flip-divider {
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  margin: 6px 0;
+}
+.csl-flip-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 2px 0;
+  color: #cbd5e1;
+}
+.csl-flip-row--profit { color: #6ee7b7; font-weight: 700; }
+.csl-flip-row--loss   { color: #fca5a5; font-weight: 700; }
+.csl-flip-score {
+  font-weight: 700;
+  font-size: 13px;
+  color: #60a5fa;
+}

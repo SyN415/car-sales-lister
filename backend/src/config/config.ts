@@ -28,6 +28,9 @@ export const config = {
   VIN_DECODER_API_KEY: process.env.VIN_DECODER_API_KEY || '',
   VIN_DECODER_API_URL: process.env.VIN_DECODER_API_URL || 'https://vpic.nhtsa.dot.gov/api',
 
+  // NHTSA (Recalls & Complaints)
+  NHTSA_API_URL: 'https://api.nhtsa.gov',
+
   // Bright Data (Web Scraping)
   BRIGHT_DATA_ZONE: process.env.BRIGHT_DATA_ZONE || '',
   BRIGHT_DATA_USERNAME: process.env.BRIGHT_DATA_USERNAME || '',
