@@ -4,6 +4,16 @@ import supabaseAdmin from '../config/supabase';
 import { KbbValuation, KbbValuationRequest } from '../types/valuation.types';
 
 class KbbService {
+  private normalizeValuation(data: Partial<KbbValuation> | null | undefined): KbbValuation | null {
+    if (!data) return null;
+
+    return {
+      ...data,
+      id: data.id || '',
+      source: data.source === 'kbb_api' ? 'kbb_api' : 'estimated',
+    } as KbbValuation;
+  }
+
   /**
    * Get KBB valuation for a vehicle (with caching)
    */
@@ -38,7 +48,7 @@ class KbbService {
     }
 
     const { data } = await query.single();
-    return data as KbbValuation | null;
+    return this.normalizeValuation(data);
   }
 
   /**
@@ -255,6 +265,7 @@ class KbbService {
       year: request.year,
       mileage: request.mileage,
       condition: request.condition,
+      source: 'estimated',
       estimated_value: Math.round(estimatedValue),
       low_value: Math.round(estimatedValue * 0.82),
       high_value: Math.round(estimatedValue * 1.15),
@@ -278,6 +289,7 @@ class KbbService {
       year: request.year,
       mileage: request.mileage,
       condition: request.condition,
+      source: 'kbb_api',
       estimated_value: apiData.estimatedValue || apiData.value || 0,
       low_value: apiData.lowValue || apiData.rangeLow || 0,
       high_value: apiData.highValue || apiData.rangeHigh || 0,
@@ -298,6 +310,7 @@ class KbbService {
         year: valuation.year,
         mileage: valuation.mileage,
         condition: valuation.condition,
+        source: valuation.source,
         estimated_value: valuation.estimated_value,
         low_value: valuation.low_value,
         high_value: valuation.high_value,

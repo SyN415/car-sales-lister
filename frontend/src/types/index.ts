@@ -100,6 +100,7 @@ export interface KbbValuation {
   year: number;
   mileage: number;
   condition: string;
+  source: 'kbb_api' | 'estimated';
   estimated_value: number;
   low_value: number;
   high_value: number;

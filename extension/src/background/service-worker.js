@@ -172,18 +172,36 @@ async function getDealScore(listingId) {
   }
 }
 
+async function getConfiguredScrapeLocation() {
+  const stored = await chrome.storage.local.get([CONFIG.STORAGE_KEYS.SETTINGS]);
+  const settings = stored[CONFIG.STORAGE_KEYS.SETTINGS];
+  const location = typeof settings?.location === 'string' ? settings.location.trim() : '';
+  return location || null;
+}
+
 async function triggerScrape(platform) {
-  if (!(await ensureAuthToken())) return;
+  if (!(await ensureAuthToken())) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  const location = await getConfiguredScrapeLocation();
+  if (!location) {
+    console.info(`[Car Sales Lister] Skipping ${platform} backend scrape: no location configured`);
+    return { success: true, skipped: true, reason: 'No location configured' };
+  }
+
   try {
     await apiRequest('/api/admin/scrape', {
       method: 'POST',
-      body: JSON.stringify({ platform }),
+      body: JSON.stringify({ location, platforms: [platform] }),
     });
     await chrome.storage.local.set({
       [platform === 'facebook' ? CONFIG.STORAGE_KEYS.LAST_SCRAPE_FB : CONFIG.STORAGE_KEYS.LAST_SCRAPE_CL]: Date.now(),
     });
+    return { success: true };
   } catch (error) {
     console.error(`[Car Sales Lister] Scrape ${platform} error:`, error);
+    return { success: false, error: error.message };
   }
 }
 

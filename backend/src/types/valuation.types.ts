@@ -1,3 +1,5 @@
+export type ValuationSource = 'kbb_api' | 'estimated';
+
 export interface KbbValuation {
   id: string;
   vin?: string;
@@ -6,6 +8,7 @@ export interface KbbValuation {
   year: number;
   mileage: number;
   condition: string;
+  source: ValuationSource;
   estimated_value: number;
   low_value: number;
   high_value: number;

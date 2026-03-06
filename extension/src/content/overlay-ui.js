@@ -62,6 +62,26 @@
     return score;
   }
 
+  function isApiBackedValuation(valuation) {
+    return valuation?.source === 'kbb_api';
+  }
+
+  function getValueLabel(valuation) {
+    return isApiBackedValuation(valuation) ? 'Market Value' : 'Estimated Value';
+  }
+
+  function getRangeLabel(valuation) {
+    return isApiBackedValuation(valuation) ? 'Range' : 'Estimated Range';
+  }
+
+  function getKbbActionLabel(valuation) {
+    return isApiBackedValuation(valuation) ? 'KBB Report' : 'Check KBB';
+  }
+
+  function getKbbActionTitle(valuation) {
+    return isApiBackedValuation(valuation) ? 'View KBB Report' : 'Cross-check this vehicle on KBB';
+  }
+
   /* ------------------------------------------------------------------ */
   /*  Badge (feed / search result cards)                                 */
   /* ------------------------------------------------------------------ */
@@ -95,8 +115,8 @@
       ${valuation ? `<span class="csl-badge-price">${fmt(valuation.estimated_value)}</span>` : ''}
       ${valuation ? `
         <div class="csl-badge-tooltip csl-overlay">
-          <div class="csl-badge-tooltip-row"><span>Market Value</span><span>${fmt(valuation.estimated_value)}</span></div>
-          <div class="csl-badge-tooltip-row"><span>Range</span><span>${fmt(valuation.low_value)} – ${fmt(valuation.high_value)}</span></div>
+          <div class="csl-badge-tooltip-row"><span>${getValueLabel(valuation)}</span><span>${fmt(valuation.estimated_value)}</span></div>
+          <div class="csl-badge-tooltip-row"><span>${getRangeLabel(valuation)}</span><span>${fmt(valuation.low_value)} – ${fmt(valuation.high_value)}</span></div>
           <div class="csl-badge-tooltip-row"><span>Asking</span><span>${fmt(listing.price)}</span></div>
           ${score != null ? `<div class="csl-badge-tooltip-row"><span>Flip Score</span><span>${score}/100</span></div>` : ''}
         </div>` : ''}
@@ -364,6 +384,7 @@
     if (!valuation || !valuation.estimated_value || !listing.price) return '';
 
     const retailValue = valuation.estimated_value;
+    const retailValueLabel = isApiBackedValuation(valuation) ? 'Retail Value:' : 'Est. Resale Value:';
     const askPrice = listing.price;
     const reconLow = repairEstimate ? repairEstimate.total_low : 0;
     const reconHigh = repairEstimate ? repairEstimate.total_high : 0;
@@ -382,7 +403,7 @@
       <div class="csl-flip-analysis">
         <div class="csl-flip-title">💰 Flip Analysis</div>
         <div class="csl-flip-divider"></div>
-        <div class="csl-flip-row"><span>Est. Retail Value:</span><span>${fmt(retailValue)}</span></div>
+        <div class="csl-flip-row"><span>${retailValueLabel}</span><span>${fmt(retailValue)}</span></div>
         <div class="csl-flip-row"><span>Asking Price:</span><span>-${fmt(askPrice)}</span></div>
         ${reconHigh > 0 ? `<div class="csl-flip-row"><span>Est. Recon:</span><span>-${fmt(reconLow)}–${fmt(reconHigh)}</span></div>` : ''}
         <div class="csl-flip-row"><span>Holding (${daysToSell} days):</span><span>-${fmt(holdingCost)}</span></div>
@@ -406,8 +427,8 @@
     lines.push(`🚗 ${ymm || listing.title}`);
     if (listing.price) lines.push(`Asking: ${fmt(listing.price)}`);
     if (valuation) {
-      lines.push(`Market Value: ${fmt(valuation.estimated_value)}`);
-      lines.push(`Range: ${fmt(valuation.low_value)} – ${fmt(valuation.high_value)}`);
+      lines.push(`${getValueLabel(valuation)}: ${fmt(valuation.estimated_value)}`);
+      lines.push(`${getRangeLabel(valuation)}: ${fmt(valuation.low_value)} – ${fmt(valuation.high_value)}`);
     }
     if (score != null) lines.push(`Deal Score: ${score}/100 (${tierLabel(tierFromScore(score))})`);
     if (listing.mileage) lines.push(`Mileage: ${listing.mileage.toLocaleString()} mi`);
@@ -423,6 +444,17 @@
     const metaParts = [listing.seller_location || listing.location, listing.mileage ? listing.mileage.toLocaleString() + ' mi' : null].filter(Boolean);
     const fairOffer = calculateFairOffer(listing, valuation, score);
     const kbbUrl = generateKBBUrl(listing);
+    const isApiBacked = isApiBackedValuation(valuation);
+    const valueLabel = getValueLabel(valuation);
+    const rangeLabel = getRangeLabel(valuation);
+    const kbbActionLabel = getKbbActionLabel(valuation);
+    const kbbActionTitle = getKbbActionTitle(valuation);
+    const marketValueMarkup = isApiBacked
+      ? `<a href="${kbbUrl}" target="_blank" class="csl-link csl-link--inline" title="${kbbActionTitle}">${fmt(valuation.estimated_value)}</a>`
+      : fmt(valuation.estimated_value);
+    const comparisonLabel = savings == null ? '' : (isApiBacked
+      ? (savingsPositive ? 'Below market by' : 'Above market by')
+      : (savingsPositive ? 'Below estimate by' : 'Above estimate by'));
     const edmundsUrl = generateEdmundsUrl(listing);
     const ex = extras || {};
     const costs = estimateOwnershipCosts(listing, ex.gasPricePerGallon, ex.mpgCombined);
@@ -438,21 +470,22 @@
           <span class="csl-price-value csl-price-asking">${fmt(listing.price)}</span>
         </div>
         <div class="csl-price-row">
-          <span class="csl-price-label">Market Value</span>
+          <span class="csl-price-label">${valueLabel}</span>
           <span class="csl-price-value csl-price-market">
-            <a href="${kbbUrl}" target="_blank" class="csl-link csl-link--inline" title="View on KBB">${fmt(valuation.estimated_value)}</a>
+            ${marketValueMarkup}
           </span>
         </div>
         <div class="csl-price-row">
-          <span class="csl-price-label">Range</span>
+          <span class="csl-price-label">${rangeLabel}</span>
           <span class="csl-price-range">${fmt(valuation.low_value)} – ${fmt(valuation.high_value)}</span>
         </div>
+        ${isApiBacked ? '' : `<div class="csl-hint">This number is an internal estimate based on age, mileage, condition, and market heuristics — not a live KBB appraisal.</div>`}
 
         <hr class="csl-divider">
 
         ${savings != null ? `
           <div class="csl-savings csl-savings--${savingsPositive ? 'positive' : 'negative'}">
-            ${savingsPositive ? '💰' : '📈'} ${savingsPositive ? 'Save' : 'Over market by'} ${fmt(Math.abs(savings))}
+            ${savingsPositive ? '💰' : '📈'} ${comparisonLabel} ${fmt(Math.abs(savings))}
           </div>` : ''}
 
         <div class="csl-score-section">
@@ -467,8 +500,8 @@
 
         <!-- Quick Action Links -->
         <div class="csl-quick-actions">
-          <a href="${kbbUrl}" target="_blank" class="csl-action-link" title="View KBB Report">
-            <span class="csl-action-icon">📊</span> KBB Report
+          <a href="${kbbUrl}" target="_blank" class="csl-action-link" title="${kbbActionTitle}">
+            <span class="csl-action-icon">📊</span> ${kbbActionLabel}
           </a>
           <a href="${edmundsUrl}" target="_blank" class="csl-action-link" title="View Edmunds Review">
             <span class="csl-action-icon">📝</span> Edmunds
@@ -498,7 +531,7 @@
               <div class="csl-offer-label">Suggested Offer</div>
               <div class="csl-offer-value">${fmt(fairOffer)}</div>
             </div>
-            <p class="csl-hint">Based on market value, condition, and current deal quality. Start here and negotiate.</p>
+            <p class="csl-hint">Based on ${isApiBacked ? 'market value' : 'this estimate'}, condition, and current deal quality. Start here and negotiate.</p>
             ${listing.price && fairOffer < listing.price ? `
               <div class="csl-offer-savings">That's ${fmt(listing.price - fairOffer)} below asking (${Math.round((1 - fairOffer / listing.price) * 100)}% discount)</div>
             ` : ''}
