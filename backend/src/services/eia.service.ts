@@ -15,6 +15,30 @@ interface GasPriceResult {
 class EiaService {
   private cache: { data: GasPriceResult; fetchedAt: number } | null = null;
 
+  private setCache(data: GasPriceResult): GasPriceResult {
+    this.cache = { data, fetchedAt: Date.now() };
+    return data;
+  }
+
+  private async fetchLatestGasPrice(params: Record<string, string | number>): Promise<any | null> {
+    const resp = await axios.get(EIA_API_URL, {
+      params: {
+        api_key: config.EIA_API_KEY,
+        ...params,
+      },
+      timeout: 10000,
+    });
+
+    const rows = resp.data?.response?.data;
+    return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+  }
+
+  private logQueryFailure(label: string, error: any): void {
+    const status = error?.response?.status;
+    const details = error?.response?.data || error?.message;
+    console.error(`[EiaService] ${label} query failed`, { status, details });
+  }
+
   /**
    * Get current California regular gasoline price from EIA.
    * Uses facet area=PCal (Pacific — California) for SF Bay Area relevance.
@@ -36,44 +60,60 @@ class EiaService {
 
     if (!config.EIA_API_KEY) {
       console.warn('[EiaService] No EIA_API_KEY configured — using fallback gas price');
-      return fallback;
+      return this.setCache(fallback);
     }
 
-    try {
-      const resp = await axios.get(EIA_API_URL, {
+    const queries: Array<{ label: string; params: Record<string, string | number> }> = [
+      {
+        label: 'weekly duoarea/product',
         params: {
-          api_key: config.EIA_API_KEY,
           frequency: 'weekly',
           'data[0]': 'value',
           'facets[duoarea][]': 'SCA',
           'facets[product][]': 'EPM0',
-          sort: JSON.stringify([{ column: 'period', direction: 'desc' }]),
+          'sort[0][column]': 'period',
+          'sort[0][direction]': 'desc',
           length: 1,
         },
-        timeout: 10000,
-      });
+      },
+      {
+        label: 'monthly series fallback',
+        params: {
+          frequency: 'monthly',
+          'data[0]': 'value',
+          'facets[series][]': 'EMD_EPD2D_PTE_R1Y_DPG',
+          'sort[0][column]': 'period',
+          'sort[0][direction]': 'desc',
+          offset: 0,
+          length: 1,
+        },
+      },
+    ];
 
-      const rows = resp.data?.response?.data;
-      if (!rows || rows.length === 0) {
-        console.warn('[EiaService] No data from EIA API — using fallback');
-        return fallback;
+    for (const query of queries) {
+      try {
+        const row = await this.fetchLatestGasPrice(query.params);
+        if (!row) {
+          console.warn(`[EiaService] No data returned for ${query.label} query`);
+          continue;
+        }
+
+        const result: GasPriceResult = {
+          price_per_gallon: Number(row.value) || fallback.price_per_gallon,
+          area: row['area-name'] || 'California',
+          product: row['product-name'] || 'Regular Gasoline',
+          period: row.period || 'unknown',
+          source: 'eia',
+        };
+
+        return this.setCache(result);
+      } catch (error: any) {
+        this.logQueryFailure(query.label, error);
       }
-
-      const row = rows[0];
-      const result: GasPriceResult = {
-        price_per_gallon: Number(row.value) || fallback.price_per_gallon,
-        area: row['area-name'] || 'California',
-        product: row['product-name'] || 'Regular Gasoline',
-        period: row.period || 'unknown',
-        source: 'eia',
-      };
-
-      this.cache = { data: result, fetchedAt: Date.now() };
-      return result;
-    } catch (error: any) {
-      console.error('[EiaService] API error:', error.message);
-      return fallback;
     }
+
+    console.warn('[EiaService] All EIA queries failed — using fallback gas price');
+    return this.setCache(fallback);
   }
 }
 

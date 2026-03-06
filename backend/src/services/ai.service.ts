@@ -6,6 +6,9 @@ class AiService {
   private client: OpenAI;
 
   constructor() {
+    if (!config.OPENROUTER_API_KEY) {
+      console.error('[AiService] CRITICAL: OPENROUTER_API_KEY is not set — all AI calls will fail with 401');
+    }
     this.client = new OpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: config.OPENROUTER_API_KEY,

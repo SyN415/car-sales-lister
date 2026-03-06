@@ -83,6 +83,16 @@ async function showDashboard(user) {
   }
 }
 
+async function clearStoredAuth() {
+  authToken = null;
+  await chrome.storage.local.remove([
+    CONFIG.STORAGE_KEYS.AUTH_TOKEN,
+    CONFIG.STORAGE_KEYS.USER,
+  ]);
+  await chrome.runtime.sendMessage({ type: 'SET_AUTH_TOKEN', token: null }).catch(() => undefined);
+  showLogin();
+}
+
 async function apiRequest(path) {
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
@@ -90,7 +100,15 @@ async function apiRequest(path) {
       ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
     },
   });
-  return response.json();
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 401) {
+    await clearStoredAuth();
+    throw new Error(data.error || 'Session expired. Please sign in again.');
+  }
+  if (!response.ok || data?.success === false) {
+    throw new Error(data.error || `API error: ${response.status}`);
+  }
+  return data;
 }
 
 // ---- Event Handlers ----
@@ -142,13 +160,7 @@ loginBtn.addEventListener('click', async () => {
 });
 
 logoutBtn.addEventListener('click', async () => {
-  authToken = null;
-  await chrome.storage.local.remove([
-    CONFIG.STORAGE_KEYS.AUTH_TOKEN,
-    CONFIG.STORAGE_KEYS.USER,
-  ]);
-  chrome.runtime.sendMessage({ type: 'SET_AUTH_TOKEN', token: null });
-  showLogin();
+  await clearStoredAuth();
 });
 
 openDashboardBtn.addEventListener('click', () => {

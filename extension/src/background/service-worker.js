@@ -49,8 +49,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function handleMessage(message, sender) {
   switch (message.type) {
     case 'SET_AUTH_TOKEN':
-      authToken = message.token;
-      await chrome.storage.local.set({ [CONFIG.STORAGE_KEYS.AUTH_TOKEN]: message.token });
+      if (message.token) {
+        authToken = message.token;
+        await chrome.storage.local.set({ [CONFIG.STORAGE_KEYS.AUTH_TOKEN]: message.token });
+      } else {
+        await clearStoredAuth();
+      }
       return { success: true };
 
     case 'GET_AUTH_STATUS': {
@@ -118,6 +122,15 @@ async function ensureAuthToken() {
   return authToken;
 }
 
+async function clearStoredAuth() {
+  authToken = null;
+  await chrome.storage.local.remove([
+    CONFIG.STORAGE_KEYS.AUTH_TOKEN,
+    CONFIG.STORAGE_KEYS.USER,
+  ]);
+  await chrome.action.setBadgeText({ text: '' });
+}
+
 // ---- API Helpers ----
 async function apiRequest(path, options = {}) {
   const token = await ensureAuthToken();
@@ -128,6 +141,10 @@ async function apiRequest(path, options = {}) {
   const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      await clearStoredAuth();
+      throw new Error(errorData.error || 'Session expired. Please sign in again.');
+    }
     throw new Error(errorData.error || `API error: ${response.status}`);
   }
   return response.json();

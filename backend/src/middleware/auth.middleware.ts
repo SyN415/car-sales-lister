@@ -13,6 +13,12 @@ declare global {
   }
 }
 
+function getRequestToken(req: Request): string | undefined {
+  return req.headers.authorization?.replace('Bearer ', '') ||
+    req.cookies?.token ||
+    (typeof req.headers['x-auth-token'] === 'string' ? req.headers['x-auth-token'] : undefined);
+}
+
 /**
  * Middleware to verify JWT token and extract user information
  */
@@ -22,16 +28,14 @@ export const verifyToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    let token = req.headers.authorization?.replace('Bearer ', '') ||
-                req.cookies?.token ||
-                (typeof req.headers['x-auth-token'] === 'string' ? req.headers['x-auth-token'] : undefined);
+    const token = getRequestToken(req);
 
     if (!token) {
       res.status(401).json({ success: false, error: 'No token provided' });
       return;
     }
 
-    const decoded = jwt.verify(token, config.JWT_SECRET) as any;
+    jwt.verify(token, config.JWT_SECRET);
     const response = await authService.getCurrentUser(token);
 
     if (!response.success || !response.data) {
@@ -42,13 +46,13 @@ export const verifyToken = async (
     req.user = response.data;
     req.token = token;
     next();
-  } catch (error) {
-    console.error('Token verification error:', error);
-    if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ success: false, error: 'Invalid token' });
-    } else if (error instanceof jwt.TokenExpiredError) {
+  } catch (error: unknown) {
+    if (error instanceof jwt.TokenExpiredError) {
       res.status(401).json({ success: false, error: 'Token expired' });
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      res.status(401).json({ success: false, error: 'Invalid token' });
     } else {
+      console.error('Token verification error:', error);
       res.status(500).json({ success: false, error: 'Server error during token verification' });
     }
   }
@@ -85,9 +89,7 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction): v
  */
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    let token = req.headers.authorization?.replace('Bearer ', '') ||
-                req.cookies?.token ||
-                (typeof req.headers['x-auth-token'] === 'string' ? req.headers['x-auth-token'] : undefined);
+    const token = getRequestToken(req);
 
     if (token) {
       try {
@@ -97,12 +99,14 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
           req.user = response.data;
           req.token = token;
         }
-      } catch (error) {
-        console.log('Optional auth token error:', error);
+      } catch (error: unknown) {
+        if (!(error instanceof jwt.TokenExpiredError) && !(error instanceof jwt.JsonWebTokenError)) {
+          console.error('Optional auth token error:', error);
+        }
       }
     }
     next();
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Optional auth error:', error);
     next();
   }
