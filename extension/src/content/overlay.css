@@ -1,12 +1,12 @@
 /* ================================================================
    Car Sales Lister – Marketplace Overlay
-   Glassmorphism-styled badges, panels, and deal indicators
+   Premium automotive HUD — clean, data-driven, no emojis
    ================================================================ */
 
 /* ----- Reset & Namespace ----- */
 .csl-overlay, .csl-overlay * {
   box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
@@ -19,50 +19,51 @@
   z-index: 9999;
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 8px;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.15);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   pointer-events: auto;
 }
 .csl-badge:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
-.csl-badge-icon { font-size: 13px; }
+.csl-badge-icon { font-size: 10px; font-weight: 800; opacity: 0.9; }
 .csl-badge-text { white-space: nowrap; }
-.csl-badge-price { font-size: 10px; opacity: 0.85; white-space: nowrap; }
+.csl-badge-price { font-size: 10px; opacity: 0.8; white-space: nowrap; font-weight: 600; }
 
-/* Deal tiers */
-.csl-badge--great { background: rgba(16,185,129,0.85); color: #fff; }
-.csl-badge--good  { background: rgba(245,158,11,0.85); color: #fff; }
-.csl-badge--fair  { background: rgba(249,115,22,0.85); color: #fff; }
-.csl-badge--over  { background: rgba(239,68,68,0.85); color: #fff; }
-.csl-badge--unknown { background: rgba(100,116,139,0.8); color: #fff; }
-.csl-badge--login { background: rgba(37,99,235,0.85); color: #fff; }
+/* Deal tiers — more subdued, less candy-colored */
+.csl-badge--great { background: rgba(16,185,129,0.88); color: #fff; }
+.csl-badge--good  { background: rgba(6,182,212,0.85); color: #fff; }
+.csl-badge--fair  { background: rgba(245,158,11,0.85); color: #fff; }
+.csl-badge--over  { background: rgba(220,50,50,0.85); color: #fff; }
+.csl-badge--unknown { background: rgba(60,65,80,0.88); color: rgba(255,255,255,0.8); }
+.csl-badge--login { background: rgba(6,182,212,0.85); color: #fff; }
 
 /* ----- Detail Panel (floating sidebar) ----- */
 .csl-panel {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 16px;
+  right: 16px;
   z-index: 99999;
   width: 320px;
-  border-radius: 16px;
-  background: rgba(15,23,42,0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  color: #e2e8f0;
+  border-radius: 12px;
+  background: rgba(12,12,16,0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.2);
+  color: #d1d5db;
   overflow: hidden;
   transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
   animation: csl-slide-up 0.3s cubic-bezier(0.4,0,0.2,1);
@@ -72,36 +73,53 @@
   to   { transform: translateY(0); opacity: 1; }
 }
 
-.csl-panel--collapsed { transform: translateY(calc(100% - 44px)); }
+.csl-panel--collapsed { transform: translateY(calc(100% - 40px)); }
+
+/* Brand mark in panel header */
+.csl-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #06B6D4;
+  color: #09090B;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  line-height: 1;
+}
 
 .csl-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   cursor: pointer;
   user-select: none;
 }
 .csl-panel-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #f1f5f9;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.3px;
 }
 .csl-panel-close {
   background: none;
   border: none;
-  color: #94a3b8;
-  font-size: 18px;
+  color: #6b7280;
+  font-size: 16px;
   cursor: pointer;
   padding: 0 2px;
   line-height: 1;
+  transition: color 0.15s ease;
 }
-.csl-panel-close:hover { color: #f1f5f9; }
+.csl-panel-close:hover { color: #e5e7eb; }
 
 .csl-panel-body { padding: 14px; }
 
@@ -292,28 +310,29 @@
   align-items: center;
   gap: 4px;
   padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: 5px;
+  font-size: 10px;
   font-weight: 600;
-  color: #94a3b8;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
 }
 .csl-action-link:hover {
-  background: rgba(255,255,255,0.12);
-  color: #e2e8f0;
-  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
+  color: #e5e7eb;
+  border-color: rgba(255,255,255,0.14);
 }
 .csl-action-link--success {
   color: #34d399 !important;
   border-color: rgba(16,185,129,0.3) !important;
-  background: rgba(16,185,129,0.1) !important;
+  background: rgba(16,185,129,0.08) !important;
 }
-.csl-action-icon { font-size: 12px; }
 
 /* ----- Inline links (e.g. market value link) ----- */
 .csl-link--inline {

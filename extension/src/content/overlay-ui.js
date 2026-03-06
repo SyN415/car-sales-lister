@@ -25,11 +25,12 @@
   }
 
   function tierLabel(tier) {
-    return { great: 'GREAT DEAL', good: 'GOOD DEAL', fair: 'FAIR DEAL', over: 'OVERPRICED', unknown: 'CAR DETECTED' }[tier] || 'CAR DETECTED';
+    return { great: 'GREAT DEAL', good: 'GOOD DEAL', fair: 'FAIR PRICE', over: 'OVERPRICED', unknown: 'ANALYZING' }[tier] || 'ANALYZING';
   }
 
-  function tierEmoji(tier) {
-    return { great: '🔥', good: '👍', fair: '🤔', over: '⚠️', unknown: '🚗' }[tier] || '🚗';
+  /** Clean tier indicator — no emojis */
+  function tierIcon(tier) {
+    return { great: '▲▲', good: '▲', fair: '●', over: '▼', unknown: '—' }[tier] || '—';
   }
 
   function fmt(n) {
@@ -92,25 +93,25 @@
 
     // Calculate flip $/day for the badge text
     let flipLabel = tierLabel(tier);
-    let flipEmoji = tierEmoji(tier);
+    let flipIcon = tierIcon(tier);
     if (valuation && valuation.estimated_value && listing.price) {
       const profit = valuation.estimated_value - listing.price;
-      const daysToSell = 14; // conservative default for badge
+      const daysToSell = 14;
       const holdingCost = 12 * daysToSell;
       const netProfit = profit - holdingCost;
       const perDay = Math.round(netProfit / daysToSell);
       if (perDay > 0) {
         flipLabel = `~${fmt(perDay)}/day`;
-        flipEmoji = perDay >= 100 ? '🔥' : perDay >= 50 ? '👍' : '💰';
+        flipIcon = perDay >= 100 ? '▲▲' : '▲';
       } else {
         flipLabel = `${fmt(perDay)}/day`;
-        flipEmoji = '⚠️';
+        flipIcon = '▼';
       }
     }
 
     const badge = el('div', `csl-overlay csl-badge csl-badge--${tier}`);
     badge.innerHTML = `
-      <span class="csl-badge-icon">${flipEmoji}</span>
+      <span class="csl-badge-icon">${flipIcon}</span>
       <span class="csl-badge-text">${flipLabel}</span>
       ${valuation ? `<span class="csl-badge-price">${fmt(valuation.estimated_value)}</span>` : ''}
       ${valuation ? `
@@ -161,7 +162,7 @@
   function buildPanelHeader() {
     return `
       <div class="csl-panel-header" data-csl-toggle>
-        <div class="csl-panel-title">🚗 Car Sales Lister</div>
+        <div class="csl-panel-title"><span class="csl-brand-mark">CSL</span> Deal Analysis</div>
         <button class="csl-panel-close" data-csl-close>&times;</button>
       </div>`;
   }
@@ -171,7 +172,7 @@
       <div class="csl-panel-body">
         <div class="csl-login-prompt">
           <p>Log in to the Car Sales Lister extension to see deal analysis, market values, and add to your watchlist.</p>
-          <button class="csl-btn csl-btn--primary" data-csl-open-popup>🔑 Open Extension</button>
+          <button class="csl-btn csl-btn--primary" data-csl-open-popup>Open Extension</button>
         </div>
       </div>`;
   }
@@ -366,7 +367,7 @@
     return `
       <div class="csl-expandable" data-csl-section="repair">
         <div class="csl-expandable-header">
-          <span>🔧 Repair Estimate</span>
+          <span>Repair Estimate</span>
           <span class="csl-chevron">›</span>
         </div>
         <div class="csl-expandable-content">
@@ -401,7 +402,7 @@
 
     return `
       <div class="csl-flip-analysis">
-        <div class="csl-flip-title">💰 Flip Analysis</div>
+        <div class="csl-flip-title">Flip Analysis</div>
         <div class="csl-flip-divider"></div>
         <div class="csl-flip-row"><span>${retailValueLabel}</span><span>${fmt(retailValue)}</span></div>
         <div class="csl-flip-row"><span>Asking Price:</span><span>-${fmt(askPrice)}</span></div>
@@ -424,7 +425,7 @@
   function buildClipboardText(listing, valuation, score) {
     const lines = [];
     const ymm = [listing.year, listing.make, listing.model].filter(Boolean).join(' ');
-    lines.push(`🚗 ${ymm || listing.title}`);
+    lines.push(ymm || listing.title);
     if (listing.price) lines.push(`Asking: ${fmt(listing.price)}`);
     if (valuation) {
       lines.push(`${getValueLabel(valuation)}: ${fmt(valuation.estimated_value)}`);
@@ -463,7 +464,7 @@
       <div class="csl-panel-body">
         <div class="csl-vehicle-name">${yearMakeModel || listing.title}</div>
         ${buildFactorBadges(ex.vehicleFactors)}
-        ${metaParts.length ? `<div class="csl-vehicle-meta">📍 ${metaParts.join(' · ')}</div>` : ''}
+        ${metaParts.length ? `<div class="csl-vehicle-meta">${metaParts.join(' · ')}</div>` : ''}
 
         <div class="csl-price-row">
           <span class="csl-price-label">Asking Price</span>
@@ -485,7 +486,7 @@
 
         ${savings != null ? `
           <div class="csl-savings csl-savings--${savingsPositive ? 'positive' : 'negative'}">
-            ${savingsPositive ? '💰' : '📈'} ${comparisonLabel} ${fmt(Math.abs(savings))}
+            ${savingsPositive ? '▼' : '▲'} ${comparisonLabel} ${fmt(Math.abs(savings))}
           </div>` : ''}
 
         <div class="csl-score-section">
@@ -501,21 +502,21 @@
         <!-- Quick Action Links -->
         <div class="csl-quick-actions">
           <a href="${kbbUrl}" target="_blank" class="csl-action-link" title="${kbbActionTitle}">
-            <span class="csl-action-icon">📊</span> ${kbbActionLabel}
+            ${kbbActionLabel}
           </a>
           <a href="${edmundsUrl}" target="_blank" class="csl-action-link" title="View Edmunds Review">
-            <span class="csl-action-icon">📝</span> Edmunds
+            Edmunds
           </a>
           ${listing.vin ? `
             <a href="https://www.vehiclehistory.com/vin-report/${listing.vin}" target="_blank" class="csl-action-link" title="Free VIN Report">
-              <span class="csl-action-icon">🔍</span> VIN Check
+              VIN Check
             </a>
             <a href="https://www.nhtsa.gov/recalls?vin=${listing.vin}" target="_blank" class="csl-action-link" title="Check NHTSA Recalls">
-              <span class="csl-action-icon">⚠️</span> Recalls
+              Recalls
             </a>
           ` : ''}
           <button class="csl-action-link" data-csl-copy title="Copy listing details to clipboard">
-            <span class="csl-action-icon">📋</span> Copy
+            Copy
           </button>
         </div>
 
@@ -523,7 +524,7 @@
         ${fairOffer ? `
         <div class="csl-expandable" data-csl-section="offer">
           <div class="csl-expandable-header">
-            <span>💡 Negotiation Helper</span>
+            <span>Negotiation Helper</span>
             <span class="csl-chevron">›</span>
           </div>
           <div class="csl-expandable-content">
@@ -541,7 +542,7 @@
         <!-- Cost of Ownership -->
         <div class="csl-expandable" data-csl-section="costs">
           <div class="csl-expandable-header">
-            <span>💰 Est. Annual Costs</span>
+            <span>Est. Annual Costs</span>
             <span class="csl-chevron">›</span>
           </div>
           <div class="csl-expandable-content">
@@ -559,7 +560,7 @@
         ${listing.vin ? `
         <div class="csl-expandable" data-csl-section="vin">
           <div class="csl-expandable-header">
-            <span>🔑 Vehicle History</span>
+            <span>Vehicle History</span>
             <span class="csl-chevron">›</span>
           </div>
           <div class="csl-expandable-content">
@@ -576,7 +577,7 @@
 
         ${ex.resellability ? `
         <div class="csl-resellability">
-          📈 Resellability: ${ex.resellability.resellability_score}/10 — similar cars sell in ~${ex.resellability.median_days_to_sell} days in SF
+          Resellability: ${ex.resellability.resellability_score}/10 — similar cars sell in ~${ex.resellability.median_days_to_sell} days
           ${ex.resellability.comp_count > 0 ? `<span class="csl-comp-count">(${ex.resellability.comp_count} comps)</span>` : ''}
           ${ex.resellability.source === 'ai_estimate' ? '<span class="csl-ai-tag">AI Est.</span>' : ''}
         </div>` : ''}
@@ -584,8 +585,8 @@
         ${buildFlipAnalysis(listing, valuation, ex.repairEstimate, ex.resellability)}
 
         <div class="csl-actions">
-          <button class="csl-btn csl-btn--primary" data-csl-watchlist>＋ Watchlist</button>
-          <button class="csl-btn csl-btn--secondary" data-csl-dashboard>📊 Dashboard</button>
+          <button class="csl-btn csl-btn--primary" data-csl-watchlist>+ Watchlist</button>
+          <button class="csl-btn csl-btn--secondary" data-csl-dashboard>Dashboard</button>
         </div>
       </div>`;
   }
@@ -640,7 +641,7 @@
           document.execCommand('copy');
           ta.remove();
           copyBtn.innerHTML = '<span class="csl-action-icon">✓</span> Copied!';
-          setTimeout(() => { copyBtn.innerHTML = '<span class="csl-action-icon">📋</span> Copy'; }, 2000);
+          setTimeout(() => { copyBtn.innerHTML = 'Copy'; }, 2000);
         }
       });
     }
@@ -669,7 +670,7 @@
           watchBtn.innerHTML = '✓ Added';
         } else {
           watchBtn.innerHTML = '✗ Failed';
-          setTimeout(() => { watchBtn.innerHTML = '＋ Watchlist'; watchBtn.disabled = false; }, 2000);
+          setTimeout(() => { watchBtn.innerHTML = '+ Watchlist'; watchBtn.disabled = false; }, 2000);
         }
       });
     }
@@ -730,7 +731,7 @@
     const authResp = await swMessage({ type: 'GET_AUTH_STATUS' });
     if (!authResp.isAuthenticated) {
       const badge = el('div', 'csl-overlay csl-badge csl-badge--login');
-      badge.innerHTML = '<span class="csl-badge-icon">🚗</span><span class="csl-badge-text">Log in for deals</span>';
+      badge.innerHTML = '<span class="csl-badge-icon">—</span><span class="csl-badge-text">Log in for deals</span>';
       badge.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); chrome.runtime.sendMessage({ type: 'OPEN_POPUP' }); });
       cardEl.appendChild(badge);
       return;

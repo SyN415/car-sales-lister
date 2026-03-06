@@ -10,7 +10,6 @@ import {
   Zap,
   BarChart3,
   ArrowRight,
-  Car,
   Eye,
   Globe,
 } from 'lucide-react';
@@ -55,28 +54,25 @@ const Section: React.FC<{
   );
 };
 
-/* ── Pill Visualizer (abstract animated pills) ── */
-const PILL_COLORS = [
-  'bg-mint', 'bg-violet', 'bg-sky', 'bg-amber', 'bg-coral',
-  'bg-mint', 'bg-sky', 'bg-violet',
-];
+/* ── Gauge bar visualizer ── */
+const GAUGE_BARS = Array.from({ length: 12 }, (_, i) => i);
 
-const PillVisualizer: React.FC = () => (
-  <div className="relative w-full max-w-lg mx-auto h-40 flex items-center justify-center gap-1.5">
-    {PILL_COLORS.map((color, i) => (
+const GaugeVisualizer: React.FC = () => (
+  <div className="relative w-full max-w-md mx-auto h-28 flex items-end justify-center gap-1">
+    {GAUGE_BARS.map((i) => (
       <motion.div
         key={i}
-        className={`${color} rounded-full opacity-80`}
-        style={{ width: 8 + Math.random() * 8 }}
+        className="rounded-sm bg-cyan-500/70"
+        style={{ width: 6 }}
         animate={{
-          height: [20 + i * 6, 50 + Math.sin(i) * 30, 20 + i * 6],
-          opacity: [0.5, 0.9, 0.5],
+          height: [12, 24 + Math.sin(i * 0.8) * 40, 12],
+          opacity: [0.35, 0.85, 0.35],
         }}
         transition={{
-          duration: 2 + i * 0.3,
+          duration: 2.4 + i * 0.2,
           repeat: Infinity,
           ease: 'easeInOut',
-          delay: i * 0.15,
+          delay: i * 0.1,
         }}
       />
     ))}
@@ -89,37 +85,37 @@ const FEATURES = [
     icon: Search,
     title: 'Multi-Platform Search',
     description: 'Aggregate listings from Facebook Marketplace and Craigslist in one unified feed.',
-    accent: 'text-sky',
+    accent: 'text-cyan-400',
   },
   {
     icon: DollarSign,
     title: 'KBB Valuations',
     description: 'Instant Kelley Blue Book pricing so you know what every car is actually worth.',
-    accent: 'text-mint',
+    accent: 'text-emerald-400',
   },
   {
     icon: Bell,
     title: 'Smart Deal Alerts',
     description: 'Get notified the moment a car matching your criteria drops below market value.',
-    accent: 'text-amber',
+    accent: 'text-amber-400',
   },
   {
     icon: TrendingUp,
     title: 'Deal Scoring',
     description: 'Every listing gets a 0–100 deal score calculated from price, condition, and mileage.',
-    accent: 'text-coral',
+    accent: 'text-cyan-400',
   },
   {
     icon: Shield,
     title: 'VIN Decode & Red Flags',
     description: 'Decode any VIN to reveal history, specs, and potential red flags instantly.',
-    accent: 'text-violet',
+    accent: 'text-slate-400',
   },
   {
     icon: Zap,
     title: 'Real-Time Scraping',
     description: 'Our browser extension scrapes live pages and syncs new listings to your dashboard.',
-    accent: 'text-mint',
+    accent: 'text-emerald-400',
   },
 ];
 
@@ -156,23 +152,21 @@ const STATS = [
    ══════════════════════════════════════════════════ */
 const Home: React.FC = () => {
   return (
-    <div className="relative overflow-hidden bg-surface-black text-white selection:bg-mint/30 selection:text-white">
+    <div className="relative overflow-hidden bg-surface-black text-white selection:bg-cyan-500/30 selection:text-white">
       {/* ── Background layers ── */}
-      <div className="pointer-events-none fixed inset-0 z-0 dot-matrix" />
-      <div className="pointer-events-none fixed inset-0 z-0 grid-lines opacity-40" />
-      {/* Glow orbs */}
-      <div className="pointer-events-none fixed top-[-200px] left-[-100px] w-[600px] h-[600px] rounded-full bg-mint/[0.06] blur-[160px] animate-float-slow z-0" />
-      <div className="pointer-events-none fixed bottom-[-200px] right-[-100px] w-[500px] h-[500px] rounded-full bg-violet/[0.07] blur-[140px] animate-float-slower z-0" />
-      <div className="pointer-events-none fixed top-[40%] left-[50%] w-[400px] h-[400px] rounded-full bg-sky/[0.04] blur-[120px] animate-pulse-glow z-0" />
+      <div className="pointer-events-none fixed inset-0 z-0 grid-surface" />
+      <div className="pointer-events-none fixed inset-0 z-0 noise-overlay" />
+      {/* Ambient glow */}
+      <div className="pointer-events-none fixed top-[-200px] left-[-100px] w-[500px] h-[500px] rounded-full bg-cyan-500/[0.04] blur-[180px] animate-drift z-0" />
+      <div className="pointer-events-none fixed bottom-[-200px] right-[-100px] w-[400px] h-[400px] rounded-full bg-blue-500/[0.03] blur-[160px] animate-drift z-0" style={{ animationDelay: '-10s' }} />
 
       {/* ═══ HERO ═══ */}
-      <Section className="relative z-10 pt-32 pb-24 md:pt-44 md:pb-36 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          {/* Badge */}
+      <Section className="relative z-10 pt-32 pb-20 md:pt-44 md:pb-32 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Tag */}
           <motion.div custom={0} variants={fadeUp} className="inline-flex mb-8">
-            <span className="glass-pill px-5 py-2 text-xs font-medium tracking-widest uppercase text-white/70 flex items-center gap-2">
-              <Car className="w-3.5 h-3.5 text-mint" />
-              <span>Smarter Car Shopping</span>
+            <span className="pill-btn pill-btn--ghost text-[11px] tracking-[0.15em] uppercase cursor-default">
+              Data-driven car shopping
             </span>
           </motion.div>
 
@@ -180,44 +174,36 @@ const Home: React.FC = () => {
           <motion.h1
             custom={1}
             variants={fadeUp}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extralight leading-[1.05] tracking-tight mb-6"
+            className="text-5xl sm:text-6xl md:text-7xl font-extralight leading-[1.08] tracking-tight mb-6"
           >
-            Find Your{' '}
-            <span className="text-gradient-mint font-light">Perfect</span>
-            <br />
-            Car Deal
+            Find underpriced cars{' '}
+            <span className="text-gradient-cyan font-normal">before anyone else</span>
           </motion.h1>
 
           {/* Sub-heading */}
           <motion.p
             custom={2}
             variants={fadeUp}
-            className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed font-light"
+            className="text-base md:text-lg text-white/45 max-w-xl mx-auto mb-10 leading-relaxed"
           >
-            Aggregate car listings from Facebook Marketplace and Craigslist.
+            Aggregate listings from Facebook Marketplace and Craigslist.
             Get KBB valuations, deal scores, and real-time alerts — all in one place.
           </motion.p>
 
           {/* CTAs */}
-          <motion.div custom={3} variants={fadeUp} className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-            <Link
-              to="/listings"
-              className="glass-pill inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-mint/10 border-mint/30 text-mint font-medium text-base hover:bg-mint/20 transition-colors"
-            >
+          <motion.div custom={3} variants={fadeUp} className="flex flex-col sm:flex-row justify-center gap-3 mb-16">
+            <Link to="/listings" className="pill-btn pill-btn--primary">
               Browse Listings
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              to="/signup"
-              className="glass-pill inline-flex items-center justify-center gap-2 px-8 py-3.5 text-white/70 font-medium text-base hover:text-white transition-colors"
-            >
+            <Link to="/signup" className="pill-btn pill-btn--ghost">
               Get Started Free
             </Link>
           </motion.div>
 
-          {/* Pill Visualizer */}
+          {/* Gauge Visualizer */}
           <motion.div custom={4} variants={scaleIn}>
-            <PillVisualizer />
+            <GaugeVisualizer />
           </motion.div>
         </div>
       </Section>
@@ -237,18 +223,17 @@ const Home: React.FC = () => {
       </Section>
 
       {/* ═══ FEATURES ═══ */}
-      <Section className="relative z-10 py-28 md:py-40 px-4">
+      <Section className="relative z-10 py-24 md:py-36 px-4">
         <div className="max-w-6xl mx-auto">
-          <motion.div custom={0} variants={fadeUp} className="text-center mb-20">
-            <p className="text-[11px] tracking-[0.25em] uppercase text-mint/60 font-mono mb-4">CAPABILITIES</p>
-            <h2 className="text-3xl md:text-5xl font-extralight leading-tight">
-              Everything you need to find
-              <br />
-              <span className="text-gradient-mint font-light">underpriced cars</span>
+          <motion.div custom={0} variants={fadeUp} className="text-center mb-16">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-cyan-500/50 font-mono mb-3">CAPABILITIES</p>
+            <h2 className="text-3xl md:text-4xl font-extralight leading-tight">
+              Everything you need to find{' '}
+              <span className="text-gradient-cyan font-normal">underpriced cars</span>
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {FEATURES.map((feat, i) => {
               const Icon = feat.icon;
               return (
@@ -256,13 +241,13 @@ const Home: React.FC = () => {
                   key={feat.title}
                   custom={i}
                   variants={fadeUp}
-                  className="glass-card p-8 group"
+                  className="card-surface p-7 group"
                 >
-                  <div className={`w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
-                    <Icon className={`w-5 h-5 ${feat.accent}`} />
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Icon className={`w-4 h-4 ${feat.accent}`} />
                   </div>
-                  <h3 className="text-lg font-medium text-white mb-2">{feat.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{feat.description}</p>
+                  <h3 className="text-base font-semibold text-white mb-1.5">{feat.title}</h3>
+                  <p className="text-sm text-white/35 leading-relaxed">{feat.description}</p>
                 </motion.div>
               );
             })}
@@ -272,13 +257,13 @@ const Home: React.FC = () => {
 
 
       {/* ═══ HOW IT WORKS ═══ */}
-      <Section className="relative z-10 py-28 md:py-40 px-4 border-t border-white/[0.04]">
-        <div className="max-w-5xl mx-auto">
-          <motion.div custom={0} variants={fadeUp} className="text-center mb-20">
-            <p className="text-[11px] tracking-[0.25em] uppercase text-violet/60 font-mono mb-4">WORKFLOW</p>
-            <h2 className="text-3xl md:text-5xl font-extralight leading-tight">
+      <Section className="relative z-10 py-24 md:py-36 px-4 border-t border-white/[0.04]">
+        <div className="max-w-4xl mx-auto">
+          <motion.div custom={0} variants={fadeUp} className="text-center mb-16">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500 font-mono mb-3">WORKFLOW</p>
+            <h2 className="text-3xl md:text-4xl font-extralight leading-tight">
               Three steps to your next{' '}
-              <span className="text-gradient-mint font-light">great deal</span>
+              <span className="text-gradient-cyan font-normal">great deal</span>
             </h2>
           </motion.div>
 
@@ -287,16 +272,15 @@ const Home: React.FC = () => {
               const Icon = step.icon;
               return (
                 <motion.div key={step.num} custom={i} variants={fadeUp} className="relative text-center md:text-left">
-                  {/* Connector line (hidden on last) */}
                   {i < STEPS.length - 1 && (
-                    <div className="hidden md:block absolute top-6 left-[calc(50%+40px)] right-[-40px] h-px border-t border-dashed border-white/10" />
+                    <div className="hidden md:block absolute top-6 left-[calc(50%+40px)] right-[-40px] h-px border-t border-dashed border-white/[0.06]" />
                   )}
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/[0.04] border border-white/[0.06] mb-6">
-                    <Icon className="w-5 h-5 text-mint" />
+                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.06] mb-5">
+                    <Icon className="w-4 h-4 text-cyan-400" />
                   </div>
-                  <p className="text-[11px] tracking-[0.2em] uppercase text-mint/40 font-mono mb-2">{step.num}</p>
-                  <h3 className="text-xl font-medium text-white mb-3">{step.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{step.description}</p>
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-cyan-500/40 font-mono mb-2">{step.num}</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+                  <p className="text-sm text-white/35 leading-relaxed">{step.description}</p>
                 </motion.div>
               );
             })}
@@ -305,32 +289,30 @@ const Home: React.FC = () => {
       </Section>
 
       {/* ═══ CODE / DX SHOWCASE ═══ */}
-      <Section className="relative z-10 py-28 md:py-40 px-4">
-        <div className="max-w-4xl mx-auto">
-          <motion.div custom={0} variants={fadeUp} className="text-center mb-16">
-            <p className="text-[11px] tracking-[0.25em] uppercase text-sky/60 font-mono mb-4">DEVELOPER EXPERIENCE</p>
-            <h2 className="text-3xl md:text-5xl font-extralight leading-tight">
+      <Section className="relative z-10 py-24 md:py-36 px-4">
+        <div className="max-w-3xl mx-auto">
+          <motion.div custom={0} variants={fadeUp} className="text-center mb-12">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-slate-500 font-mono mb-3">DEVELOPER EXPERIENCE</p>
+            <h2 className="text-3xl md:text-4xl font-extralight leading-tight">
               Built for power users
             </h2>
           </motion.div>
 
-          {/* Code block mock */}
-          <motion.div custom={1} variants={scaleIn} className="glass-card overflow-hidden">
-            {/* Mac-style window header */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-              <div className="w-3 h-3 rounded-full bg-[#FF5F57]" />
-              <div className="w-3 h-3 rounded-full bg-[#FEBC2E]" />
-              <div className="w-3 h-3 rounded-full bg-[#28C840]" />
-              <span className="ml-3 text-xs text-white/30 font-mono">watchlist-config.ts</span>
+          <motion.div custom={1} variants={scaleIn} className="card-surface overflow-hidden">
+            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
+              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+              <span className="ml-3 text-[11px] text-white/25 font-mono">watchlist-config.ts</span>
             </div>
-            <div className="p-6 font-mono text-sm leading-7 text-white/60 overflow-x-auto">
-              <div><span className="text-violet">const</span> <span className="text-sky">watchlist</span> = {`{`}</div>
-              <div className="pl-6"><span className="text-mint">make</span>: <span className="text-amber">"Toyota"</span>,</div>
-              <div className="pl-6"><span className="text-mint">model</span>: <span className="text-amber">"Camry"</span>,</div>
-              <div className="pl-6"><span className="text-mint">yearRange</span>: [<span className="text-coral">2020</span>, <span className="text-coral">2024</span>],</div>
-              <div className="pl-6"><span className="text-mint">maxPrice</span>: <span className="text-coral">25000</span>,</div>
-              <div className="pl-6"><span className="text-mint">maxMileage</span>: <span className="text-coral">60000</span>,</div>
-              <div className="pl-6"><span className="text-mint">alertOn</span>: <span className="text-amber">"deal_score &gt; 80"</span>,</div>
+            <div className="p-5 font-mono text-sm leading-7 text-white/50 overflow-x-auto">
+              <div><span className="text-blue-400">const</span> <span className="text-cyan-400">watchlist</span> = {`{`}</div>
+              <div className="pl-6"><span className="text-emerald-400">make</span>: <span className="text-amber-400">"Toyota"</span>,</div>
+              <div className="pl-6"><span className="text-emerald-400">model</span>: <span className="text-amber-400">"Camry"</span>,</div>
+              <div className="pl-6"><span className="text-emerald-400">yearRange</span>: [<span className="text-cyan-300">2020</span>, <span className="text-cyan-300">2024</span>],</div>
+              <div className="pl-6"><span className="text-emerald-400">maxPrice</span>: <span className="text-cyan-300">25000</span>,</div>
+              <div className="pl-6"><span className="text-emerald-400">maxMileage</span>: <span className="text-cyan-300">60000</span>,</div>
+              <div className="pl-6"><span className="text-emerald-400">alertOn</span>: <span className="text-amber-400">"deal_score &gt; 80"</span>,</div>
               <div>{`}`};</div>
             </div>
           </motion.div>
@@ -338,32 +320,25 @@ const Home: React.FC = () => {
       </Section>
 
       {/* ═══ BOTTOM CTA ═══ */}
-      <Section className="relative z-10 py-32 md:py-48 px-4 border-t border-white/[0.04]">
+      <Section className="relative z-10 py-28 md:py-40 px-4 border-t border-white/[0.04]">
         <div className="max-w-3xl mx-auto text-center">
           <motion.h2
             custom={0}
             variants={fadeUp}
-            className="text-4xl md:text-6xl font-extralight leading-tight mb-6"
+            className="text-3xl md:text-5xl font-extralight leading-tight mb-6"
           >
-            Stop overpaying.
-            <br />
-            <span className="text-gradient-mint font-light">Start scoring deals.</span>
+            Stop overpaying.{' '}
+            <span className="text-gradient-cyan font-normal">Start scoring deals.</span>
           </motion.h2>
-          <motion.p custom={1} variants={fadeUp} className="text-lg text-white/40 mb-10 font-light">
+          <motion.p custom={1} variants={fadeUp} className="text-base text-white/35 mb-10">
             Join thousands of buyers using data-driven car shopping.
           </motion.p>
-          <motion.div custom={2} variants={fadeUp} className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              to="/signup"
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full bg-mint text-surface-black font-semibold text-base hover:bg-mint-dim transition-colors"
-            >
+          <motion.div custom={2} variants={fadeUp} className="flex flex-col sm:flex-row justify-center gap-3">
+            <Link to="/signup" className="pill-btn pill-btn--primary text-base px-10 py-3.5">
               Create Free Account
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              to="/listings"
-              className="glass-pill inline-flex items-center justify-center gap-2 px-10 py-4 text-white/70 font-medium text-base hover:text-white transition-colors"
-            >
+            <Link to="/listings" className="pill-btn pill-btn--ghost text-base px-10 py-3.5">
               Explore Listings
             </Link>
           </motion.div>
@@ -371,17 +346,17 @@ const Home: React.FC = () => {
       </Section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="relative z-10 border-t border-white/[0.04] py-12 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <footer className="relative z-10 border-t border-white/[0.04] py-10 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
           <div className="flex items-center gap-2">
-            <Car className="w-5 h-5 text-mint" />
-            <span className="font-semibold text-white/70">Car Sales Lister</span>
+            <span className="text-xs font-bold tracking-wider text-cyan-500">CSL</span>
+            <span className="text-sm text-white/40">Car Sales Lister</span>
           </div>
-          <p className="text-xs text-white/20">&copy; {new Date().getFullYear()} Car Sales Lister. All rights reserved.</p>
-          <div className="flex items-center gap-6 text-xs text-white/30">
-            <Link to="/listings" className="hover:text-white/60 transition-colors">Listings</Link>
-            <Link to="/login" className="hover:text-white/60 transition-colors">Sign In</Link>
-            <Link to="/signup" className="hover:text-white/60 transition-colors">Sign Up</Link>
+          <p className="text-[11px] text-white/15">&copy; {new Date().getFullYear()} Car Sales Lister</p>
+          <div className="flex items-center gap-6 text-xs text-white/25">
+            <Link to="/listings" className="hover:text-white/50 transition-colors">Listings</Link>
+            <Link to="/login" className="hover:text-white/50 transition-colors">Sign In</Link>
+            <Link to="/signup" className="hover:text-white/50 transition-colors">Sign Up</Link>
           </div>
         </div>
       </footer>

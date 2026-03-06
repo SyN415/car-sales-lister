@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { useUnreadAlertCount } from '../../hooks/useAlerts';
+import { Gauge, Sun, Moon } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthContext();
@@ -15,35 +16,32 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
+  const navLinkClass =
+    'text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors';
+
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-lg border-b border-gray-200/60 dark:border-white/[0.06]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <span className="text-2xl">🚗</span>
-            <span className="font-bold text-xl text-gray-900 dark:text-white">
-              Car Sales Lister
+        <div className="flex justify-between items-center h-14">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <Gauge className="w-5 h-5 text-cyan-500 group-hover:text-cyan-400 transition-colors" />
+            <span className="font-bold text-base tracking-tight text-gray-900 dark:text-white">
+              CSL
             </span>
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/listings" className="text-gray-600 dark:text-gray-300 hover:text-primary-600">
-              Listings
-            </Link>
+          <nav className="hidden md:flex items-center gap-5">
+            <Link to="/listings" className={navLinkClass}>Listings</Link>
             {isAuthenticated && (
               <>
-                <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-primary-600">
-                  Dashboard
-                </Link>
-                <Link to="/watchlists" className="text-gray-600 dark:text-gray-300 hover:text-primary-600">
-                  Watchlists
-                </Link>
-                <Link to="/alerts" className="relative text-gray-600 dark:text-gray-300 hover:text-primary-600">
+                <Link to="/dashboard" className={navLinkClass}>Dashboard</Link>
+                <Link to="/watchlists" className={navLinkClass}>Watchlists</Link>
+                <Link to="/alerts" className={`relative ${navLinkClass}`}>
                   Alerts
                   {unreadCount && unreadCount > 0 && (
-                    <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-3.5 bg-cyan-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
@@ -53,23 +51,23 @@ const Header: React.FC = () => {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-white/[0.06] text-gray-500 dark:text-gray-400 transition-colors"
               aria-label="Toggle theme"
             >
-              {mode === 'light' ? '🌙' : '☀️'}
+              {mode === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 dark:text-gray-300">
+                <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
                   {user?.email}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-sm px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                  className="text-xs px-3 py-1.5 rounded-md bg-gray-100 dark:bg-white/[0.06] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-gray-300 font-medium transition-colors"
                 >
                   Sign Out
                 </button>
@@ -78,13 +76,13 @@ const Header: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="text-sm px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  className="text-xs px-3 py-1.5 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] font-medium transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="text-sm px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white"
+                  className="text-xs px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-semibold transition-colors"
                 >
                   Sign Up
                 </Link>

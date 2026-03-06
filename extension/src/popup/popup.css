@@ -2,9 +2,9 @@
 
 body {
   width: 360px;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0C0C0E;
+  color: #d1d5db;
 }
 
 #app { padding: 16px; }
@@ -12,52 +12,68 @@ body {
 .header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.header .logo { font-size: 24px; }
-.header h1 { font-size: 16px; font-weight: 700; }
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #06B6D4;
+  color: #09090B;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+.header h1 { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.85); letter-spacing: -0.01em; }
 
 .section { margin-bottom: 16px; }
 .hidden { display: none !important; }
 
-.text-muted { color: #64748b; font-size: 13px; }
-.error { color: #ef4444; font-size: 12px; margin-top: 8px; }
+.text-muted { color: #6b7280; font-size: 12px; }
+.error { color: #ef4444; font-size: 11px; margin-top: 8px; }
 
 .form-group { margin-bottom: 8px; }
 
 .input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
   font-size: 13px;
+  background: rgba(255,255,255,0.04);
+  color: #e5e7eb;
   outline: none;
   transition: border-color 0.2s;
 }
 
-.input:focus { border-color: #2563eb; }
+.input:focus { border-color: #06B6D4; }
+.input::placeholder { color: #4b5563; }
 
 .btn {
   display: block;
   width: 100%;
-  padding: 10px;
+  padding: 9px;
   border: none;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  letter-spacing: 0.02em;
 }
 
-.btn-primary { background: #2563eb; color: white; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-secondary { background: #e2e8f0; color: #1e293b; margin-top: 8px; }
-.btn-secondary:hover { background: #cbd5e1; }
-.btn-link { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 12px; }
+.btn-primary { background: #06B6D4; color: #09090B; }
+.btn-primary:hover { background: #22D3EE; }
+.btn-secondary { background: rgba(255,255,255,0.06); color: #d1d5db; margin-top: 8px; border: 1px solid rgba(255,255,255,0.08); }
+.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+.btn-link { background: none; border: none; color: #06B6D4; cursor: pointer; font-size: 11px; }
 .btn-link:hover { text-decoration: underline; }
 
 .user-info {
@@ -75,43 +91,43 @@ body {
 }
 
 .stat-card {
-  background: white;
+  background: rgba(255,255,255,0.03);
   padding: 12px;
   border-radius: 8px;
   text-align: center;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
-.stat-value { display: block; font-size: 24px; font-weight: 700; color: #2563eb; }
-.stat-label { display: block; font-size: 11px; color: #64748b; margin-top: 2px; }
+.stat-value { display: block; font-size: 22px; font-weight: 700; color: #06B6D4; }
+.stat-label { display: block; font-size: 10px; color: #6b7280; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 
 .actions { margin-bottom: 12px; }
 
 .recent-section { margin-top: 12px; }
-.recent-section h3 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.recent-section h3 { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.7); }
 
 .alerts-list { list-style: none; }
 .alerts-list li {
   padding: 8px;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 6px;
   margin-bottom: 4px;
   font-size: 12px;
 }
-.alerts-list .alert-title { font-weight: 500; }
-.alerts-list .alert-meta { color: #64748b; font-size: 11px; margin-top: 2px; }
+.alerts-list .alert-title { font-weight: 500; color: #e5e7eb; }
+.alerts-list .alert-meta { color: #6b7280; font-size: 10px; margin-top: 2px; }
 
 .footer {
   padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(255,255,255,0.06);
   text-align: center;
 }
 
 .footer a {
-  color: #2563eb;
+  color: #06B6D4;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .footer a:hover { text-decoration: underline; }

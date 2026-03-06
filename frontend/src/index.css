@@ -1,5 +1,5 @@
 /* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* Tailwind Base */
 @import "tailwindcss";
@@ -10,7 +10,7 @@
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  /* Original primary palette (still used in app pages) */
+  /* Primary palette — refined automotive blue */
   --color-primary: #2563EB;
   --color-primary-50: #EFF6FF;
   --color-primary-100: #DBEAFE;
@@ -23,20 +23,21 @@
   --color-primary-800: #1E40AF;
   --color-primary-900: #1E3A8A;
 
-  /* Vapi-inspired accent palette */
-  --color-mint: #7AFCB8;
-  --color-mint-dim: #5AD89A;
-  --color-violet: #C084FC;
-  --color-sky: #38BDF8;
-  --color-amber: #FBBF24;
-  --color-coral: #FB7185;
+  /* Automotive accent palette */
+  --color-cyan: #06B6D4;
+  --color-cyan-dim: #0891B2;
+  --color-amber: #F59E0B;
+  --color-amber-dim: #D97706;
+  --color-emerald: #10B981;
+  --color-red: #EF4444;
+  --color-slate: #64748B;
 
   /* Dark surface palette */
-  --color-surface-black: #050505;
-  --color-surface-dark: #0A0A0A;
-  --color-surface-card: #111111;
-  --color-surface-elevated: #1A1A1A;
-  --color-surface-border: rgba(255, 255, 255, 0.08);
+  --color-surface-black: #09090B;
+  --color-surface-dark: #0C0C0E;
+  --color-surface-card: #131316;
+  --color-surface-elevated: #1C1C21;
+  --color-surface-border: rgba(255, 255, 255, 0.07);
 
   --color-accent: #F59E0B;
   --color-accent-50: #FFFBEB;
@@ -66,80 +67,80 @@ body {
 
 /* ── Landing Page Utilities ── */
 
-/* Dot-matrix background */
-.dot-matrix {
-  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Grid-line background */
-.grid-lines {
+/* Subtle grid background */
+.grid-surface {
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
-/* Glassmorphism pill */
-.glass-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 9999px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-.glass-pill:hover {
-  border-color: var(--color-mint);
-  box-shadow: 0 0 20px rgba(122, 252, 184, 0.15);
+/* Noise texture overlay */
+.noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
 }
 
-/* Glass card */
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
+/* Premium card surface */
+.card-surface {
+  background: rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 16px;
+  border-radius: 12px;
   transition: border-color 0.3s ease, transform 0.3s var(--ease-out-expo);
 }
-.glass-card:hover {
+.card-surface:hover {
   border-color: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
 }
 
-/* Glow effects */
-.glow-mint {
-  box-shadow: 0 0 60px rgba(122, 252, 184, 0.15), 0 0 120px rgba(122, 252, 184, 0.05);
+/* Pill button */
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
-.glow-violet {
-  box-shadow: 0 0 60px rgba(192, 132, 252, 0.15), 0 0 120px rgba(192, 132, 252, 0.05);
+.pill-btn--primary {
+  background: #06B6D4;
+  color: #09090B;
+  font-weight: 600;
+}
+.pill-btn--primary:hover {
+  background: #22D3EE;
+  box-shadow: 0 0 24px rgba(6, 182, 212, 0.3);
+}
+.pill-btn--ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+.pill-btn--ghost:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
-/* Text gradient */
-.text-gradient-mint {
-  background: linear-gradient(135deg, #7AFCB8, #38BDF8);
+/* Text gradient — automotive cyan */
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #06B6D4, #3B82F6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Animated floating glow orbs */
-@keyframes float-slow {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -20px) scale(1.05); }
-  66% { transform: translate(-20px, 15px) scale(0.95); }
+/* Ambient glow */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -15px); }
 }
-@keyframes float-slower {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(-25px, 25px) scale(1.03); }
-  66% { transform: translate(15px, -30px) scale(0.97); }
-}
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+@keyframes breathe {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
 }
 
-.animate-float-slow { animation: float-slow 12s ease-in-out infinite; }
-.animate-float-slower { animation: float-slower 16s ease-in-out infinite; }
-.animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+.animate-drift { animation: drift 20s ease-in-out infinite; }
+.animate-breathe { animation: breathe 6s ease-in-out infinite; }
